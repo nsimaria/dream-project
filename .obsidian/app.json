@@ -1,0 +1,19 @@
+{
+  "alwaysUpdateLinks": true,
+  "showLineNumber": true,
+  "showInlineTitle": false,
+  "pdfExportSettings": {
+    "includeName": true,
+    "pageSize": "A4",
+    "landscape": false,
+    "margin": "0",
+    "downscalePercent": 80
+  },
+  "livePreview": false,
+  "defaultViewMode": "preview",
+  "userIgnoreFilters": [
+    ".claude/"
+  ],
+  "showUnsupportedFiles": true,
+  "promptDelete": false
+}

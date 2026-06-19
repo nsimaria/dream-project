@@ -1,0 +1,10 @@
+{
+  "cssTheme": "",
+  "showViewHeader": true,
+  "baseFontSize": 18,
+  "baseFontSizeAction": false,
+  "enabledCssSnippets": [
+    "custom"
+  ],
+  "monospaceFontFamily": "Courier New"
+}

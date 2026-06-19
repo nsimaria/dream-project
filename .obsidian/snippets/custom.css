@@ -1,0 +1,8 @@
+:root {
+  --my-font-monospace: 'Monaco', monospace;
+}
+
+.markdown-source-view.mod-cm6 .cm-scroller {
+    font-family: var(--my-font-monospace);
+    font-size: 0.8em;
+}
