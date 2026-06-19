@@ -4,18 +4,18 @@
     "type": "split",
     "children": [
       {
-        "id": "610dfc687e2785d9",
+        "id": "50a89dc4be4863ed",
         "type": "tabs",
         "children": [
           {
-            "id": "74a9930d59ce50b4",
+            "id": "6ae442e5c827deba",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
                 "file": "Slices/S-00-repo-bootstrap/S-00-01-backend-alive.md",
                 "mode": "source",
-                "source": false
+                "source": true
               },
               "icon": "lucide-file",
               "title": "S-00-01-backend-alive"
@@ -183,14 +183,15 @@
       "bases:Create new base": false
     }
   },
-  "active": "d1254da87a85437e",
+  "active": "6ae442e5c827deba",
   "lastOpenFiles": [
-    "Slices/S-00-repo-bootstrap/S-00-02-passenger-web-app-alive.md",
     "Slices/S-00-repo-bootstrap/S-00-01-backend-alive.md",
+    "Slices/S-00-repo-bootstrap/S-00-02-passenger-web-app-alive.md",
+    "Slices/S-00-repo-bootstrap/S-00-04-edge-alive.md",
+    "TODO.md",
     "Slices/S-00-repo-bootstrap/S-00-repo-bootstrap.md",
     "Slices/S-02-contract-toolchain-conformance-harness/S-02-contract-toolchain-conformance-harness.md",
     "Slices/S-00-repo-bootstrap/S-00-05-orchestration.md",
-    "Slices/S-00-repo-bootstrap/S-00-04-edge-alive.md",
     "Slices/S-00-repo-bootstrap/S-00-03-operator-android-app-alive.md",
     "Slices/S-00-repo-bootstrap/S-00-01-repo-skeleton.md",
     "Slices/S-01-repo-module-ci-scaffold/S-01-repo-module-ci-scaffold.md",
