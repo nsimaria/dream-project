@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>A Dream Journey — Deck</title>
+<style>
+  :root{
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+  }
+  /* ---- PHASE: DAY ---- */
+  :root, .phase-day{
+    --night:#eef3fb; --night2:#ffffff; --night3:#f3f7fd;
+    --line:rgba(19,41,78,.12); --line2:rgba(19,41,78,.20);
+    --cream:#13294e; --muted:#54668a; --muted2:#8a99b6;
+    --gold:#2f63d8; --gold-soft:rgba(47,99,216,.12);
+    --teal:#0f8d7e; --teal-soft:rgba(15,141,126,.13);
+    --lilac:#6b4fcf; --lilac-soft:rgba(107,79,207,.12);
+    --shadow:rgba(19,41,78,.16);
+  }
+  /* ---- PHASE: DUSK ---- */
+  .phase-dusk{
+    --night:#b7bfdb; --night2:#cfd5ea; --night3:#c4cae3;
+    --line:rgba(33,38,74,.16); --line2:rgba(33,38,74,.26);
+    --cream:#20274f; --muted:#474d75; --muted2:#6a7099;
+    --gold:#3a4ea8; --gold-soft:rgba(58,78,168,.16);
+    --teal:#0d7d75; --teal-soft:rgba(13,125,117,.16);
+    --lilac:#5a45b6; --lilac-soft:rgba(90,69,182,.16);
+    --shadow:rgba(20,24,55,.24);
+  }
+  /* ---- PHASE: NIGHT ---- */
+  .phase-night{
+    --night:#0e1326; --night2:#141b35; --night3:#1c2747;
+    --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.18);
+    --cream:#f3efe6; --muted:#9aa3c0; --muted2:#6f7796;
+    --gold:#e9b872; --gold-soft:rgba(233,184,114,.14);
+    --teal:#7fd1c4; --teal-soft:rgba(127,209,196,.14);
+    --lilac:#b3a4e6; --lilac-soft:rgba(179,164,230,.14);
+    --shadow:rgba(0,0,0,.45);
+  }
+  /* ---- PHASE: DAWN ---- */
+  .phase-dawn{
+    --night:#f7e9dd; --night2:#fff6ec; --night3:#fbeede;
+    --line:rgba(74,47,78,.13); --line2:rgba(74,47,78,.20);
+    --cream:#46304e; --muted:#8a6670; --muted2:#b2939b;
+    --gold:#e07a5f; --gold-soft:rgba(224,122,95,.15);
+    --teal:#2a9d8f; --teal-soft:rgba(42,157,143,.14);
+    --lilac:#9b5fb0; --lilac-soft:rgba(155,95,176,.14);
+    --shadow:rgba(74,47,78,.16);
+  }
+  *{box-sizing:border-box}
+  *{transition:background-color .9s ease, color .9s ease, border-color .9s ease, fill .9s ease, stroke .9s ease;}
+  html,body{height:100%;margin:0;}
+  body{
+    background:var(--night);color:var(--cream);font-family:var(--font);
+    line-height:1.6;-webkit-font-smoothing:antialiased;overflow:hidden;
+  }
+
+  /* ---- Deck mechanics ---- */
+  .deck{position:fixed;inset:0;}
+  .slide{
+    position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+    padding:48px 56px 84px;opacity:0;visibility:hidden;pointer-events:none;
+    transform:translateY(14px);transition:opacity .5s ease, transform .5s ease, visibility .5s;
+    overflow-y:auto;
+  }
+  .slide.active{opacity:1;visibility:visible;pointer-events:auto;transform:none;}
+  .inner{max-width:1000px;margin:auto;width:100%;}
+  @media(max-width:760px){.slide{padding:32px 22px 76px;}}
+
+  /* slide top label */
+  .slabel{display:flex;align-items:center;gap:12px;margin:0 0 18px;
+    font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);font-weight:600;}
+  .slabel .sn{display:inline-flex;align-items:center;justify-content:center;
+    width:30px;height:30px;border-radius:50%;border:1.5px solid var(--gold);color:var(--gold);
+    font-size:13px;font-weight:700;letter-spacing:0;}
+  .slabel.magic .sn{border-color:var(--teal);color:var(--teal);}
+  .slabel .where{color:var(--muted);font-weight:500;letter-spacing:.06em;}
+
+  h2.stitle{font-family:var(--serif);font-weight:500;font-size:clamp(26px,3.6vw,40px);
+    line-height:1.12;margin:0 0 16px;letter-spacing:-.01em;}
+
+  /* ---- Title slide ---- */
+  .title-slide{text-align:center;}
+  .kicker{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);
+    margin:0 0 22px;font-weight:600;}
+  .title-slide h1{font-family:var(--serif);font-weight:500;font-size:clamp(38px,7vw,68px);
+    line-height:1.1;margin:0 0 24px;letter-spacing:-.01em;}
+  .title-slide h1 em{font-style:italic;color:var(--gold);}
+  .title-slide .sub{font-size:18px;color:var(--muted);max-width:620px;margin:0 auto 32px;}
+  .legend{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 22px;margin:0 auto;}
+  .legend .lg{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--muted);}
+  .dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
+  .dot.you{background:var(--gold)} .dot.crew{background:var(--teal)} .dot.co{background:var(--lilac)}
+
+  /* ---- Split: mockup + content ---- */
+  .split{display:flex;gap:36px;align-items:flex-start;}
+  .mock{flex:0 0 150px;}
+  .content{flex:1 1 auto;min-width:0;}
+  @media(max-width:760px){.split{flex-direction:column;gap:18px;}.mock{width:120px;flex:0 0 auto;}}
+  .mock svg{width:100%;height:auto;display:block;filter:drop-shadow(0 10px 22px var(--shadow));}
+
+  .exp{font-size:18px;color:var(--cream);margin:0 0 18px;line-height:1.55;}
+  .exp b{color:var(--gold);font-weight:600;}
+
+  /* mini journey flows */
+  .flow{margin:2px 0 18px;display:flex;flex-direction:column;gap:9px;}
+  .frow{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+  .ftag{flex:0 0 auto;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    padding:3px 9px;border-radius:20px;}
+  .frow.you .ftag{color:var(--gold);background:var(--gold-soft);}
+  .frow.crew .ftag{color:var(--teal);background:var(--teal-soft);}
+  .frow.co .ftag{color:var(--lilac);background:var(--lilac-soft);}
+  .step{flex:0 0 auto;font-size:13px;color:var(--cream);background:var(--night3);
+    border:1px solid var(--line);border-radius:8px;padding:6px 11px;white-space:nowrap;}
+  .frow.you .step{border-color:color-mix(in srgb,var(--gold) 42%,transparent);}
+  .frow.crew .step{border-color:color-mix(in srgb,var(--teal) 40%,transparent);}
+  .frow.co .step{border-color:color-mix(in srgb,var(--lilac) 40%,transparent);}
+  .arr{flex:0 0 auto;color:var(--muted2);font-size:14px;}
+
+  /* woven-in side moments */
+  .moment{display:flex;gap:11px;align-items:flex-start;font-size:14.5px;color:var(--muted);
+    background:var(--night2);border:1px solid var(--line);border-left-width:3px;
+    border-radius:10px;padding:11px 14px;margin:9px 0;}
+  .moment.crew{border-left-color:var(--teal);}
+  .moment.co{border-left-color:var(--lilac);}
+  .moment .who{flex:0 0 auto;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    padding:2px 8px;border-radius:20px;margin-top:1px;}
+  .moment.crew .who{color:var(--teal);background:var(--teal-soft);}
+  .moment.co .who{color:var(--lilac);background:var(--lilac-soft);}
+  .moment b{color:var(--cream);font-weight:600;}
+
+  /* under the hood */
+  .hood{margin-top:14px;border:1px dashed var(--line2);border-radius:10px;overflow:hidden;}
+  .hood summary{cursor:pointer;list-style:none;padding:11px 14px;font-size:13px;color:var(--muted);
+    display:flex;align-items:center;gap:9px;user-select:none;}
+  .hood summary::-webkit-details-marker{display:none}
+  .hood summary .gear{color:var(--gold);font-size:14px;}
+  .hood summary .chev{margin-left:auto;transition:transform .2s;color:var(--muted2);}
+  .hood[open] summary .chev{transform:rotate(90deg);}
+  .hood .body{padding:2px 16px 15px;font-size:14px;color:var(--muted);border-top:1px solid var(--line);}
+  .hood .body b{color:var(--cream);font-weight:600;}
+  .hood .body .term{color:var(--gold);font-style:italic;}
+
+  /* minimalist screen primitives */
+  .scr-frame{fill:var(--night2);stroke:var(--line2);stroke-width:2;}
+  .scr-bg{fill:var(--night);}
+  .scr-notch{stroke:var(--muted2);stroke-width:3;stroke-linecap:round;}
+  .scr-box{fill:none;stroke:var(--line2);stroke-width:1.4;}
+  .scr-fill{fill:var(--night3);stroke:none;}
+  .scr-card{fill:var(--night3);stroke:var(--line2);stroke-width:1.4;}
+  .scr-cardhi{fill:var(--gold-soft);stroke:var(--gold);stroke-width:1.8;}
+  .scr-ph{stroke:var(--muted2);stroke-width:3;stroke-linecap:round;opacity:.65;}
+  .scr-accent{fill:var(--gold);}
+  .scr-accent-s{fill:none;stroke:var(--gold);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
+  .scr-teal{fill:var(--teal);}
+  .scr-teal-s{fill:none;stroke:var(--teal);stroke-width:2;stroke-linecap:round;}
+
+  /* ---- Synthesis slide ---- */
+  .synth-lead{color:var(--muted);max-width:680px;font-size:17px;margin:0 0 22px;}
+  .pillars{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  @media(max-width:680px){.pillars{grid-template-columns:1fr}}
+  .pillar{background:var(--night3);border:1px solid var(--line);border-radius:12px;padding:16px 18px;}
+  .pillar .pt{font-weight:600;color:var(--cream);font-size:15.5px;margin:0 0 5px;}
+  .pillar .pd{font-size:14px;color:var(--muted);margin:0;}
+
+  /* ---- Big picture diagram ---- */
+  .bpsub{color:var(--muted);max-width:760px;font-size:16px;margin:0 0 18px;}
+  .diagram{background:var(--night2);border:1px solid var(--line);border-radius:16px;padding:12px 10px;}
+  .diagram svg{width:100%;height:auto;display:block;max-height:46vh;}
+  .bpcap{color:var(--muted);max-width:760px;margin:14px 0 0;font-size:12.5px;line-height:1.55;}
+  .dg-edge{fill:none;stroke:var(--line2);stroke-width:1.6;}
+  .dg-off{fill:none;stroke:var(--gold);stroke-width:2.6;stroke-dasharray:7 6;stroke-linecap:round;}
+  .dg-you{fill:var(--night);stroke:var(--gold);stroke-width:1.5;}
+  .dg-crew{fill:var(--night);stroke:var(--teal);stroke-width:1.5;}
+  .dg-co{fill:var(--night);stroke:var(--lilac);stroke-width:1.5;}
+  .dg-plat{fill:var(--gold);stroke:none;}
+  .dg-train{fill:var(--night);stroke:var(--cream);stroke-width:2;stroke-linejoin:round;}
+  .dg-win{fill:none;stroke:var(--cream);stroke-width:1.6;}
+  .dg-wheel{fill:var(--cream);}
+  .dg-stripe{stroke:var(--gold);stroke-width:3;stroke-linecap:round;}
+  .dg-pill{fill:var(--night);stroke:var(--gold);stroke-width:1.4;}
+  .dg-t-label{fill:var(--cream);font-weight:600;font-family:var(--font);}
+  .dg-t-role{font-family:var(--font);font-weight:700;letter-spacing:.08em;}
+  .dg-t-plat{fill:var(--night);font-weight:700;font-family:var(--serif);}
+  .dg-t-plats{fill:var(--night);font-family:var(--font);opacity:.9;}
+  .dg-t-line{fill:var(--muted);font-family:var(--font);}
+  .dg-t-off{fill:var(--gold);font-family:var(--font);font-weight:700;}
+  .dg-role-you{fill:var(--gold);} .dg-role-crew{fill:var(--teal);} .dg-role-co{fill:var(--lilac);}
+  /* detailed-diagram extras */
+  .diagram.tall svg{max-height:64vh;}
+  .dg-bound{fill:var(--gold-soft);stroke:var(--gold);stroke-width:1.6;stroke-dasharray:6 6;}
+  .dg-svc{fill:var(--night3);stroke:var(--line2);stroke-width:1.4;}
+  .dg-svc-hi{fill:var(--night3);stroke:var(--gold);stroke-width:1.9;}
+  .dg-bus{fill:var(--gold-soft);stroke:var(--gold);stroke-width:1.6;}
+  .dg-ext{fill:var(--night);stroke:var(--muted2);stroke-width:1.4;}
+  .dg-dw{fill:var(--night3);stroke:var(--lilac);stroke-width:1.5;}
+  .dg-tag{fill:var(--night2);}
+  .dg-t-svc{fill:var(--cream);font-weight:600;font-family:var(--font);}
+  .dg-t-sub{fill:var(--muted);font-family:var(--font);}
+  .dg-t-cap{fill:var(--muted);font-family:var(--font);}
+
+  /* ---- Nav UI ---- */
+  .nav{position:fixed;left:0;right:0;bottom:0;height:60px;display:flex;align-items:center;
+    justify-content:center;gap:18px;z-index:20;}
+  .nav .arrow{width:38px;height:38px;border-radius:50%;border:1px solid var(--line2);
+    background:var(--night2);color:var(--cream);font-size:17px;cursor:pointer;display:flex;
+    align-items:center;justify-content:center;line-height:1;user-select:none;}
+  .nav .arrow:hover{border-color:var(--gold);color:var(--gold);}
+  .nav .arrow[disabled]{opacity:.32;cursor:default;border-color:var(--line);color:var(--muted2);}
+  .dots{display:flex;gap:8px;align-items:center;}
+  .dotnav{width:8px;height:8px;border-radius:50%;background:var(--muted2);opacity:.4;cursor:pointer;
+    border:none;padding:0;transition:opacity .25s, transform .25s, background-color .9s;}
+  .dotnav.on{opacity:1;background:var(--gold);transform:scale(1.35);}
+  .counter{position:fixed;top:20px;right:24px;z-index:20;font-size:12.5px;color:var(--muted2);
+    letter-spacing:.08em;font-weight:600;}
+  .progress{position:fixed;top:0;left:0;height:3px;background:var(--gold);width:0;z-index:25;
+    transition:width .45s ease;}
+  .hint{position:fixed;bottom:64px;left:0;right:0;text-align:center;font-size:11.5px;
+    color:var(--muted2);letter-spacing:.04em;z-index:15;pointer-events:none;
+    opacity:1;transition:opacity .6s ease;}
+  .hint.hide{opacity:0;}
+</style>
+</head>
+<body class="phase-day">
+<div class="progress" id="progress"></div>
+<div class="counter"><span id="cur">1</span> / <span id="tot">9</span></div>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 1 — TITLE -->
+  <section class="slide active title-slide" data-phase="day">
+    <div class="inner">
+      <p class="kicker">Berlin · Cologne · Brussels · Paris</p>
+      <h1>A dream journey.<br /><em>A Dream Platform.</em></h1>
+      <p class="sub">Follow one passenger from idea to arrival — and watch the platform, the crew, and the company work quietly behind every moment.</p>
+<!--      <div class="legend">
+        <span class="lg"><span class="dot you"></span> You — the traveller</span>
+        <span class="lg"><span class="dot crew"></span> Crew — staff &amp; operations</span>
+        <span class="lg"><span class="dot co"></span> Company — business &amp; partners</span>
+      </div> -->
+    </div>
+  </section>
+
+  <!-- SLIDE 2 — SEARCH -->
+  <section class="slide" data-phase="day">
+    <div class="inner">
+      <div class="slabel"><span class="sn">1</span> The idea of a trip <span class="where">· At home, on the web</span></div>
+      <h2 class="stitle">The idea of a trip</h2>
+      <div class="split">
+        <div class="mock">
+          <svg viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Search screen mockup">
+            <rect class="scr-frame" x="4" y="4" width="132" height="272" rx="20"/>
+            <rect class="scr-bg" x="12" y="20" width="116" height="240" rx="9"/>
+            <line class="scr-notch" x1="58" y1="13" x2="82" y2="13"/>
+            <rect class="scr-card" x="22" y="32" width="96" height="17" rx="8"/>
+            <circle class="scr-accent-s" cx="31" cy="40.5" r="3.2"/>
+            <line class="scr-ph" x1="40" y1="40.5" x2="74" y2="40.5" stroke-width="2.4"/>
+            <rect class="scr-fill" x="22" y="56" width="96" height="13" rx="6"/>
+            <line class="scr-ph" x1="28" y1="62.5" x2="58" y2="62.5" stroke-width="2.4"/>
+            <rect class="scr-fill" x="22" y="73" width="96" height="13" rx="6"/>
+            <line class="scr-ph" x1="28" y1="79.5" x2="64" y2="79.5" stroke-width="2.4"/>
+            <rect class="scr-cardhi" x="22" y="98" width="96" height="32" rx="7"/>
+            <line class="scr-ph" x1="29" y1="109" x2="75" y2="109"/>
+            <line class="scr-ph" x1="29" y1="120" x2="58" y2="120" stroke-width="2.4"/>
+            <rect class="scr-card" x="22" y="138" width="96" height="27" rx="7"/>
+            <line class="scr-ph" x1="29" y1="148" x2="70" y2="148"/>
+            <line class="scr-ph" x1="29" y1="157" x2="52" y2="157" stroke-width="2.4"/>
+            <rect class="scr-card" x="22" y="173" width="96" height="27" rx="7"/>
+            <line class="scr-ph" x1="29" y1="183" x2="70" y2="183"/>
+            <line class="scr-ph" x1="29" y1="192" x2="52" y2="192" stroke-width="2.4"/>
+          </svg>
+        </div>
+        <div class="content">
+          <p class="exp">You search <b>Berlin to Paris, overnight</b>. In seconds you see real departures, real prices, and exactly what's still free — a seat for the day, a berth or a private suite for the night.</p>
+          <div class="flow">
+            <div class="frow you"><span class="ftag">You</span><span class="step">Search route &amp; date</span><span class="arr">→</span><span class="step">See live availability</span><span class="arr">→</span><span class="step">See the real price</span></div>
+            <div class="frow co"><span class="ftag">Company</span><span class="step">One master record</span><span class="arr">→</span><span class="step">Our apps + outside sellers</span><span class="arr">→</span><span class="step">Same product everywhere</span></div>
+          </div>
+          <div class="moment co"><span class="who">Company</span><div>The very same availability also feeds outside sellers like Trainline and Omio — so people can discover the train wherever they already shop, all drawing on <b>one single source of truth</b> for what's for sale.</div></div>
+          <details class="hood">
+            <summary><span class="gear">⚙</span> Behind the scenes <span class="chev">›</span></summary>
+            <div class="body">There's <b>one master record</b> of every seat, berth and price — so the number you see is never a stale guess, and you're never shown something that's already gone. Whether you book on our own site or through a third party, everyone reads from that same record, so the product never looks different in two places. <span class="term">(In the architecture: shared inventory &amp; pricing behind an open industry standard, OSDM.)</span></div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 3 — BOOK -->
+  <section class="slide" data-phase="day">
+    <div class="inner">
+      <div class="slabel"><span class="sn">2</span> Choosing your bed <span class="where">· Booking &amp; payment</span></div>
+      <h2 class="stitle">Choosing your bed</h2>
+      <div class="split">
+        <div class="mock">
+          <svg viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Choose your berth screen mockup">
+            <rect class="scr-frame" x="4" y="4" width="132" height="272" rx="20"/>
+            <rect class="scr-bg" x="12" y="20" width="116" height="240" rx="9"/>
+            <line class="scr-notch" x1="58" y1="13" x2="82" y2="13"/>
+            <line class="scr-ph" x1="22" y1="36" x2="70" y2="36"/>
+            <rect class="scr-box" x="24" y="48" width="26" height="20" rx="4"/>
+            <rect class="scr-box" x="57" y="48" width="26" height="20" rx="4"/>
+            <rect class="scr-box" x="90" y="48" width="26" height="20" rx="4"/>
+            <rect class="scr-box" x="24" y="74" width="26" height="20" rx="4"/>
+            <rect class="scr-cardhi" x="57" y="74" width="26" height="20" rx="4"/>
+            <rect class="scr-box" x="90" y="74" width="26" height="20" rx="4"/>
+            <rect class="scr-box" x="24" y="100" width="26" height="20" rx="4"/>
+            <rect class="scr-box" x="57" y="100" width="26" height="20" rx="4"/>
+            <rect class="scr-box" x="90" y="100" width="26" height="20" rx="4"/>
+            <line class="scr-ph" x1="22" y1="140" x2="48" y2="140" stroke-width="3.4"/>
+            <line class="scr-ph" x1="92" y1="140" x2="116" y2="140" stroke-width="3.4"/>
+            <rect class="scr-accent" x="22" y="156" width="96" height="22" rx="9"/>
+            <line x1="56" y1="167" x2="84" y2="167" stroke="var(--night)" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="content">
+          <p class="exp">You pick your <b>exact berth</b> from the layout, sign in, and pay. A ticket with a scannable code lands instantly. The whole booking screen works by keyboard and screen-reader, so it's usable by everyone — not an afterthought.</p>
+          <div class="flow">
+            <div class="frow you"><span class="ftag">You</span><span class="step">Pick your berth</span><span class="arr">→</span><span class="step">Sign in</span><span class="arr">→</span><span class="step">Pay</span><span class="arr">→</span><span class="step">Get your ticket</span></div>
+            <div class="frow crew"><span class="ftag">Crew</span><span class="step">Hold the track rights</span><span class="arr">→</span><span class="step">Certify the train</span><span class="arr">→</span><span class="step">Trip goes on sale</span></div>
+          </div>
+          <div class="moment co"><span class="who">Company</span><div>You can sign in the European way — with Google, Apple, <b>or your national government ID</b> (like FranceConnect). It's a deliberately European product, and your privacy rights are built in from the start.</div></div>
+          <div class="moment crew"><span class="who">Crew</span><div>Before this train could even be sold, an <b>operations planner</b> confirmed the company holds the legal right to run it across all three countries' tracks — and that the train itself is certified to cross those borders. No right to run, no trip on sale.</div></div>
+          <details class="hood">
+            <summary><span class="gear">⚙</span> Behind the scenes <span class="chev">›</span></summary>
+            <div class="body">The moment you pay, <b>your bed becomes truly yours</b>. Taking the money and reserving the berth happen as a single locked step, so there's no way to be double-charged or double-booked — even if a thousand people are booking at once. Almost everything else in the system is built for speed and resilience; this one path is deliberately built for certainty. <span class="term">(In the architecture: strong consistency in payments &amp; ticketing.)</span></div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 4 — BOARD -->
+  <section class="slide" data-phase="day">
+    <div class="inner">
+      <div class="slabel"><span class="sn">3</span> Stepping aboard <span class="where">· On the platform, at the door</span></div>
+      <h2 class="stitle">Stepping aboard</h2>
+      <div class="split">
+        <div class="mock">
+          <svg viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Digital ticket screen mockup">
+            <rect class="scr-frame" x="4" y="4" width="132" height="272" rx="20"/>
+            <rect class="scr-bg" x="12" y="20" width="116" height="240" rx="9"/>
+            <line class="scr-notch" x1="58" y1="13" x2="82" y2="13"/>
+            <rect class="scr-card" x="22" y="34" width="96" height="170" rx="11"/>
+            <rect class="scr-box" x="44" y="48" width="52" height="52" rx="3"/>
+            <rect class="scr-accent" x="49" y="53" width="9" height="9"/>
+            <rect class="scr-accent" x="82" y="53" width="9" height="9"/>
+            <rect class="scr-accent" x="49" y="86" width="9" height="9"/>
+            <rect class="scr-accent" x="64" y="68" width="7" height="7"/>
+            <rect class="scr-accent" x="75" y="79" width="7" height="7"/>
+            <rect class="scr-accent" x="84" y="86" width="9" height="6"/>
+            <line class="scr-ph" x1="40" y1="118" x2="100" y2="118"/>
+            <line class="scr-ph" x1="48" y1="130" x2="92" y2="130" stroke-width="2.4"/>
+            <circle class="scr-accent-s" cx="70" cy="166" r="13"/>
+            <path class="scr-accent-s" d="M63 166 l5 5 l10 -11"/>
+          </svg>
+        </div>
+        <div class="content">
+          <p class="exp">At the station, a conductor scans your code and welcomes you on. Your cabin is fresh, made up, ready — exactly as booked.</p>
+          <div class="flow">
+            <div class="frow you"><span class="ftag">You</span><span class="step">Arrive at the platform</span><span class="arr">→</span><span class="step">Code scanned</span><span class="arr">→</span><span class="step">Welcomed aboard</span></div>
+            <div class="frow crew"><span class="ftag">Crew</span><span class="step">Cabin cleaned</span><span class="arr">→</span><span class="step">Marked ready in app</span><span class="arr">→</span><span class="step">Train cleared to go</span></div>
+          </div>
+          <div class="moment crew"><span class="who">Crew</span><div>The conductor scans you in using the <b>staff app on a handheld device</b> — and it works even with no signal in the station. Earlier, a <b>cleaner</b> used the same app to mark your cabin turned-around and ready, which is how operations knew the train was good to go.</div></div>
+          <details class="hood">
+            <summary><span class="gear">⚙</span> Behind the scenes <span class="chev">›</span></summary>
+            <div class="body">Every train carries <b>its own small brain on board</b>. Before departure it pre-loads who's booked and which tickets are valid, so check-in, ticket scans and crew tasks all keep working with no connection at all — then catch up with the outside world whenever signal returns. <span class="term">(In the architecture: the Train Edge Gateway + the offline-first Operator App.)</span></div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5 — THE NIGHT -->
+  <section class="slide" data-phase="night">
+    <div class="inner">
+      <div class="slabel"><span class="sn">4</span> The night on board <span class="where">· Transportation meets hospitality</span></div>
+      <h2 class="stitle">The night on board</h2>
+      <div class="split">
+        <div class="mock">
+          <svg viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cabin controls screen mockup">
+            <rect class="scr-frame" x="4" y="4" width="132" height="272" rx="20"/>
+            <rect class="scr-bg" x="12" y="20" width="116" height="240" rx="9"/>
+            <line class="scr-notch" x1="58" y1="13" x2="82" y2="13"/>
+            <line class="scr-ph" x1="22" y1="36" x2="64" y2="36"/>
+            <line class="scr-ph" x1="22" y1="54" x2="44" y2="54" stroke-width="2.4"/>
+            <line class="scr-box" x1="22" y1="66" x2="118" y2="66" stroke-width="3" stroke-linecap="round"/>
+            <line class="scr-accent-s" x1="22" y1="66" x2="96" y2="66" stroke-width="3"/>
+            <circle class="scr-accent" cx="96" cy="66" r="6"/>
+            <line class="scr-ph" x1="22" y1="86" x2="48" y2="86" stroke-width="2.4"/>
+            <line class="scr-box" x1="22" y1="98" x2="118" y2="98" stroke-width="3" stroke-linecap="round"/>
+            <line class="scr-accent-s" x1="22" y1="98" x2="70" y2="98" stroke-width="3"/>
+            <circle class="scr-accent" cx="70" cy="98" r="6"/>
+            <line class="scr-ph" x1="22" y1="124" x2="56" y2="124" stroke-width="2.4"/>
+            <rect class="scr-accent" x="90" y="118" width="28" height="14" rx="7"/>
+            <circle cx="111" cy="125" r="5" fill="var(--night)"/>
+            <circle class="scr-teal" cx="26" cy="150" r="4"/>
+            <line class="scr-ph" x1="36" y1="150" x2="96" y2="150" stroke-width="2.4"/>
+          </svg>
+        </div>
+        <div class="content">
+          <p class="exp">From your phone you <b>dim the lights, set the temperature, and lock your cabin to private</b>. You glance at the app to see the bathroom's free before getting up, and order breakfast for the morning. It feels less like a train and more like a small hotel that happens to be moving.</p>
+          <div class="flow">
+            <div class="frow you"><span class="ftag">You</span><span class="step">Open the app</span><span class="arr">→</span><span class="step">Set lights &amp; warmth</span><span class="arr">→</span><span class="step">Lock cabin private</span><span class="arr">→</span><span class="step">Order breakfast</span></div>
+            <div class="frow crew"><span class="ftag">Crew</span><span class="step">Order hits the galley</span><span class="arr">→</span><span class="step">Prepared</span><span class="arr">→</span><span class="step">Served in the morning</span></div>
+          </div>
+          <div class="moment crew"><span class="who">Crew</span><div>Your breakfast order appears on the <b>on-board host's app</b> in the galley, queued and ready to prepare — the same order you placed from your bunk.</div></div>
+          <details class="hood">
+            <summary><span class="gear">⚙</span> Behind the scenes <span class="chev">›</span></summary>
+            <div class="body">Your phone talks <b>directly to the train</b> for anything physical — lights, temperature, the privacy lock. And "is the bathroom free?" is answered live and then <b>forgotten instantly</b> — that kind of status is never stored anywhere, on purpose, as a privacy line we won't cross. <span class="term">(In the architecture: a device-shadow IoT layer; facility state is real-time only, never persisted.)</span></div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 6 — MAGIC MOMENT -->
+  <section class="slide" data-phase="night">
+    <div class="inner">
+      <div class="slabel magic"><span class="sn">5</span> Somewhere past midnight <span class="where">· A long dark stretch between cities</span></div>
+      <h2 class="stitle">Somewhere past midnight, the signal drops</h2>
+      <div class="split">
+        <div class="mock">
+          <svg viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Offline state screen mockup">
+            <rect class="scr-frame" x="4" y="4" width="132" height="272" rx="20"/>
+            <rect class="scr-bg" x="12" y="20" width="116" height="240" rx="9"/>
+            <line class="scr-notch" x1="58" y1="13" x2="82" y2="13"/>
+            <rect x="22" y="30" width="96" height="22" rx="8" fill="var(--teal-soft)" stroke="var(--teal)" stroke-width="1.4"/>
+            <circle class="scr-teal-s" cx="33" cy="41" r="5.5"/>
+            <line class="scr-teal-s" x1="29" y1="45" x2="37" y2="37"/>
+            <line class="scr-ph" x1="44" y1="41" x2="92" y2="41" stroke-width="2.4"/>
+            <line class="scr-ph" x1="22" y1="72" x2="44" y2="72" stroke-width="2.4"/>
+            <line class="scr-box" x1="22" y1="84" x2="118" y2="84" stroke-width="3" stroke-linecap="round"/>
+            <line class="scr-accent-s" x1="22" y1="84" x2="92" y2="84" stroke-width="3"/>
+            <circle class="scr-accent" cx="92" cy="84" r="6"/>
+            <line class="scr-ph" x1="22" y1="108" x2="56" y2="108" stroke-width="2.4"/>
+            <rect class="scr-accent" x="90" y="102" width="28" height="14" rx="7"/>
+            <circle cx="111" cy="109" r="5" fill="var(--night)"/>
+            <rect class="scr-card" x="22" y="130" width="96" height="28" rx="7"/>
+            <circle class="scr-accent-s" cx="36" cy="144" r="7"/>
+            <path class="scr-accent-s" d="M32.5 144 l2.8 2.8 l5.2 -6"/>
+            <line class="scr-ph" x1="50" y1="144" x2="104" y2="144" stroke-width="2.4"/>
+          </svg>
+        </div>
+        <div class="content">
+          <p class="exp">The train loses its connection to the outside world. <b>You don't notice.</b> Your lights still respond. Your door stays locked. Your ticket still shows. The bathroom indicator still updates. When signal returns an hour later, everything you and the crew did quietly syncs back up — nothing lost, nothing doubled.</p>
+          <div class="flow">
+            <div class="frow you"><span class="ftag">You</span><span class="step">Signal drops</span><span class="arr">→</span><span class="step">Everything keeps working</span><span class="arr">→</span><span class="step">Syncs on reconnect</span></div>
+            <div class="frow crew"><span class="ftag">Crew</span><span class="step">Keep scanning &amp; logging</span><span class="arr">→</span><span class="step">Held safely on board</span><span class="arr">→</span><span class="step">Reconciled instantly</span></div>
+          </div>
+          <div class="moment crew"><span class="who">Crew</span><div>The conductor kept checking tickets and the cleaner kept logging tasks the whole time. Their work was held safely on board and <b>reconciled the instant the train reconnected</b>.</div></div>
+          <details class="hood">
+            <summary><span class="gear">⚙</span> Behind the scenes <span class="chev">›</span></summary>
+            <div class="body">This is the hardest problem in the whole platform, and the reason it exists. Connectivity on a moving train is unreliable, so <b>nothing important is allowed to depend on a live connection</b>. The train's brain holds the truth locally and merges cleanly with the cloud when reconnected. It's being proven on a real physical test rig — model trains in a lab — <b>years before the real trains arrive</b>. <span class="term">(In the architecture: offline-first sync-on-reconnect, validated in the Lab.)</span></div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 7 — ARRIVE -->
+  <section class="slide" data-phase="dawn">
+    <div class="inner">
+      <div class="slabel"><span class="sn">6</span> Arriving in Paris <span class="where">· Morning, trip complete</span></div>
+      <h2 class="stitle">Arriving in Paris</h2>
+      <div class="split">
+        <div class="mock">
+          <svg viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Trip complete screen mockup">
+            <rect class="scr-frame" x="4" y="4" width="132" height="272" rx="20"/>
+            <rect class="scr-bg" x="12" y="20" width="116" height="240" rx="9"/>
+            <line class="scr-notch" x1="58" y1="13" x2="82" y2="13"/>
+            <circle class="scr-accent-s" cx="70" cy="82" r="26" stroke-width="2.6"/>
+            <path class="scr-accent-s" d="M58 82 l9 9 l17 -19" stroke-width="3"/>
+            <line class="scr-ph" x1="38" y1="128" x2="102" y2="128" stroke-width="3.4"/>
+            <line class="scr-ph" x1="48" y1="142" x2="92" y2="142" stroke-width="2.4"/>
+            <rect class="scr-card" x="22" y="162" width="96" height="34" rx="8"/>
+            <line class="scr-ph" x1="30" y1="174" x2="72" y2="174" stroke-width="2.4"/>
+            <line class="scr-ph" x1="30" y1="185" x2="58" y2="185" stroke-width="2.4"/>
+            <line class="scr-ph" x1="92" y1="180" x2="110" y2="180" stroke-width="3.4"/>
+          </svg>
+        </div>
+        <div class="content">
+          <p class="exp">You wake rested, breakfast arrives, the trip quietly marks itself complete. You step off into the city having slept your way across a continent.</p>
+          <div class="flow">
+            <div class="frow you"><span class="ftag">You</span><span class="step">Arrive in Paris</span><span class="arr">→</span><span class="step">Breakfast</span><span class="arr">→</span><span class="step">Trip complete</span></div>
+            <div class="frow co"><span class="ftag">Company</span><span class="step">Night's events collected</span><span class="arr">→</span><span class="step">Walled-off analytics</span><span class="arr">→</span><span class="step">Better routes &amp; rewards</span></div>
+          </div>
+          <div class="moment co"><span class="who">Company</span><div>Every booking, scan, meal and cabin tweak from the night becomes <b>insight the company learns from</b> — to plan routes, price fairly, and reward loyal travellers. Analysts see the patterns; they <b>never see your name or your cabin controls</b>. That wall is built in.</div></div>
+          <details class="hood">
+            <summary><span class="gear">⚙</span> Behind the scenes <span class="chev">›</span></summary>
+            <div class="body">The reporting world is <b>walled off from the live service</b> entirely — a separate, read-only place where the business looks at trends, never at the controls that run real trips or at personal data it shouldn't touch. <span class="term">(In the architecture: a separate data warehouse with read-only, role-scoped access.)</span></div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 8 — SYNTHESIS -->
+  <section class="slide" data-phase="day">
+    <div class="inner">
+      <div class="slabel"><span class="sn">7</span> One night, three lives served</div>
+      <h2 class="stitle">One platform, three lives served at once</h2>
+      <p class="synth-lead">Across that single night, the same system quietly handled the traveller's comfort, the crew's work, and the company's understanding of its business — without any of them getting in each other's way.</p>
+      <div class="pillars">
+        <div class="pillar"><p class="pt">Hotel-grade hospitality</p><p class="pd">Beds, suites, meals and cabin control — transportation that behaves like a hotel.</p></div>
+        <div class="pillar"><p class="pt">Works without signal</p><p class="pd">The journey holds together through tunnels and dead zones, then catches up on its own.</p></div>
+        <div class="pillar"><p class="pt">Proudly European</p><p class="pd">Government-ID login, EU privacy and accessibility built in from day one.</p></div>
+        <div class="pillar"><p class="pt">Built to grow</p><p class="pd">One route today, an international network tomorrow — without rebuilding the platform.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 9 — BIG PICTURE -->
+  <section class="slide" data-phase="day">
+    <div class="inner">
+      <div class="slabel"><span class="sn">8</span> The bigger picture</div>
+      <h2 class="stitle">The bigger picture</h2>
+      <p class="bpsub">Everything you just lived through runs on a single platform — and every app is simply a different door into the same secure core. The train carries its own piece of it, which is why life on board never depends on a signal.</p>
+      <div class="diagram">
+        <svg viewBox="0 0 920 525" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram: product surfaces connecting to the platform, with the train as on-board edge and an offline link from the passenger mobile app">
+          <path class="dg-edge" d="M234 72 L340 92"/>
+          <path class="dg-edge" d="M234 200 L340 130"/>
+          <path class="dg-edge" d="M234 328 L340 165"/>
+          <path class="dg-edge" d="M686 82 L580 95"/>
+          <path class="dg-edge" d="M686 210 L580 140"/>
+          <path class="dg-edge" d="M210 423 L380 170"/>
+          <path class="dg-edge" d="M460 170 L460 428"/>
+          <path class="dg-off" d="M294 450 C334 452 372 454 404 453"/>
+          <rect class="dg-plat" x="340" y="60" width="240" height="110" rx="16"/>
+          <text class="dg-t-plat" x="460" y="110" text-anchor="middle" font-size="21">The Platform</text>
+          <text class="dg-t-plats" x="460" y="132" text-anchor="middle" font-size="11.5">the secure core that runs it all</text>
+          <text class="dg-t-plats" x="460" y="148" text-anchor="middle" font-size="10.5" opacity="0.7">booking · payments · fleet · data</text>
+          <rect class="dg-crew" x="66" y="43" width="168" height="58" rx="12"/>
+          <text class="dg-t-label" x="150" y="70" text-anchor="middle" font-size="15">Operations &amp; planning</text>
+          <text class="dg-t-role dg-role-crew" x="150" y="88" text-anchor="middle" font-size="10">CREW</text>
+          <rect class="dg-crew" x="66" y="171" width="168" height="58" rx="12"/>
+          <text class="dg-t-label" x="150" y="198" text-anchor="middle" font-size="15">Operator app</text>
+          <text class="dg-t-role dg-role-crew" x="150" y="216" text-anchor="middle" font-size="10">CREW</text>
+          <rect class="dg-you" x="66" y="299" width="168" height="58" rx="12"/>
+          <text class="dg-t-label" x="150" y="326" text-anchor="middle" font-size="15">Passenger web app</text>
+          <text class="dg-t-role dg-role-you" x="150" y="344" text-anchor="middle" font-size="10">YOU</text>
+          <rect class="dg-co" x="686" y="53" width="168" height="58" rx="12"/>
+          <text class="dg-t-label" x="770" y="80" text-anchor="middle" font-size="15">Partners &amp; resellers</text>
+          <text class="dg-t-role dg-role-co" x="770" y="98" text-anchor="middle" font-size="10">COMPANY</text>
+          <rect class="dg-co" x="686" y="181" width="168" height="58" rx="12"/>
+          <text class="dg-t-label" x="770" y="208" text-anchor="middle" font-size="15">Insight &amp; analytics</text>
+          <text class="dg-t-role dg-role-co" x="770" y="226" text-anchor="middle" font-size="10">COMPANY</text>
+          <rect class="dg-you" x="126" y="423" width="168" height="58" rx="12"/>
+          <text class="dg-t-label" x="210" y="447" text-anchor="middle" font-size="15">Passenger app</text>
+          <text class="dg-t-label" x="210" y="463" text-anchor="middle" font-size="11.5" opacity="0.8">· mobile ·</text>
+          <text class="dg-t-role dg-role-you" x="210" y="478" text-anchor="middle" font-size="10">YOU</text>
+          <path class="dg-train" d="M404 430 Q404 424 410 424 L506 424 Q520 424 520 438 L520 460 Q520 466 514 466 L410 466 Q404 466 404 460 Z"/>
+          <rect class="dg-win" x="416" y="432" width="15" height="12" rx="2"/>
+          <rect class="dg-win" x="438" y="432" width="15" height="12" rx="2"/>
+          <rect class="dg-win" x="460" y="432" width="15" height="12" rx="2"/>
+          <rect class="dg-win" x="494" y="432" width="16" height="12" rx="2"/>
+          <line class="dg-stripe" x1="409" y1="457" x2="515" y2="457"/>
+          <circle class="dg-wheel" cx="428" cy="472" r="7"/>
+          <circle class="dg-wheel" cx="498" cy="472" r="7"/>
+          <text class="dg-t-label" x="462" y="503" text-anchor="middle" font-size="14">The train — its own brain on board</text>
+          <text class="dg-t-line" x="472" y="300" text-anchor="start" font-size="12">syncs when connected</text>
+          <rect class="dg-pill" x="305" y="424" width="90" height="19" rx="9"/>
+          <text class="dg-t-off" x="350" y="437" text-anchor="middle" font-size="11">works offline</text>
+        </svg>
+      </div>
+      <p class="bpcap">Solid lines are the everyday connections every app makes to the platform — including the passenger web app. The dashed line is unique to the passenger <em>mobile</em> app: it can talk <em>straight to the train</em>, the link that keeps your cabin, ticket and facilities working when there's no signal, then catches up with the platform once there is.</p>
+    </div>
+  </section>
+
+  <!-- SLIDE 10 — INSIDE THE PLATFORM (detailed) -->
+  <section class="slide" data-phase="day">
+    <div class="inner">
+      <div class="slabel"><span class="sn">9</span> Inside the platform <span class="where">· the secure core, opened up</span></div>
+      <h2 class="stitle">Inside the platform</h2>
+      <p class="bpsub">The same single block from the last slide, opened up. Every app enters through its own checked door, then talks to a set of focused services — each owning its own data — all connected by one durable spine. Reporting lives walled off to the side.</p>
+      <div class="diagram tall">
+        <svg viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Detailed diagram: the platform broken into BFF entry layer, eight domain services, event bus, train edge, and a walled-off data warehouse">
+
+          <!-- connection lines (under boxes) -->
+          <!-- surfaces -> BFFs -->
+          <path class="dg-edge" d="M68 58 L140 120"/>
+          <path class="dg-edge" d="M218 58 L140 120"/>
+          <path class="dg-edge" d="M368 58 L380 120"/>
+          <path class="dg-edge" d="M518 58 L380 120"/>
+          <path class="dg-edge" d="M668 58 L620 120"/>
+          <!-- BFFs -> services band -->
+          <path class="dg-edge" d="M140 160 L140 196"/>
+          <path class="dg-edge" d="M380 160 L380 196"/>
+          <path class="dg-edge" d="M620 160 L620 196"/>
+          <!-- services -> bus -->
+          <path class="dg-edge" d="M123 250 L123 346"/>
+          <path class="dg-edge" d="M295 250 L295 346"/>
+          <path class="dg-edge" d="M467 250 L467 346"/>
+          <path class="dg-edge" d="M639 250 L639 346"/>
+          <!-- platform -> external systems -->
+          <path class="dg-edge" d="M718 223 L768 178"/>
+          <path class="dg-edge" d="M718 293 L768 232"/>
+          <!-- bus -> warehouse, analytics -> warehouse -->
+          <path class="dg-edge" d="M718 362 L778 332"/>
+          <path class="dg-edge" d="M858 144 L858 300"/>
+          <!-- train edge offline link to bus -->
+          <path class="dg-off" d="M160 448 C150 422 150 402 160 378"/>
+
+          <!-- WAYS IN (surfaces) -->
+          <rect class="dg-you" x="2" y="12" width="132" height="46" rx="10"/>
+          <text class="dg-t-label" x="68" y="33" text-anchor="middle" font-size="11">Passenger web</text>
+          <text class="dg-t-role dg-role-you" x="68" y="48" text-anchor="middle" font-size="8">YOU</text>
+          <rect class="dg-you" x="152" y="12" width="132" height="46" rx="10"/>
+          <text class="dg-t-label" x="218" y="33" text-anchor="middle" font-size="11">Passenger mobile</text>
+          <text class="dg-t-role dg-role-you" x="218" y="48" text-anchor="middle" font-size="8">YOU</text>
+          <rect class="dg-crew" x="302" y="12" width="132" height="46" rx="10"/>
+          <text class="dg-t-label" x="368" y="33" text-anchor="middle" font-size="11">Operations app</text>
+          <text class="dg-t-role dg-role-crew" x="368" y="48" text-anchor="middle" font-size="8">CREW</text>
+          <rect class="dg-crew" x="452" y="12" width="132" height="46" rx="10"/>
+          <text class="dg-t-label" x="518" y="33" text-anchor="middle" font-size="11">Operator app</text>
+          <text class="dg-t-role dg-role-crew" x="518" y="48" text-anchor="middle" font-size="8">CREW</text>
+          <rect class="dg-co" x="602" y="12" width="132" height="46" rx="10"/>
+          <text class="dg-t-label" x="668" y="33" text-anchor="middle" font-size="11">Partners &amp; resellers</text>
+          <text class="dg-t-role dg-role-co" x="668" y="48" text-anchor="middle" font-size="8">COMPANY</text>
+
+          <!-- PLATFORM BOUNDARY -->
+          <rect class="dg-bound" x="28" y="96" width="720" height="304" rx="16"/>
+          <rect class="dg-tag" x="40" y="86" width="262" height="20"/>
+          <text class="dg-t-svc" x="48" y="100" font-size="11">THE PLATFORM — the secure core</text>
+
+          <!-- BFF entry layer -->
+          <text class="dg-t-cap" x="44" y="116" font-size="9.5">Per-app entrances — your login is checked here, then swapped for one internal pass</text>
+          <rect class="dg-you" x="40" y="120" width="200" height="40" rx="10"/>
+          <text class="dg-t-label" x="140" y="145" text-anchor="middle" font-size="12">Passenger entrance</text>
+          <rect class="dg-crew" x="280" y="120" width="200" height="40" rx="10"/>
+          <text class="dg-t-label" x="380" y="145" text-anchor="middle" font-size="12">Operator entrance</text>
+          <rect class="dg-co" x="520" y="120" width="200" height="40" rx="10"/>
+          <text class="dg-t-label" x="620" y="145" text-anchor="middle" font-size="12">Distribution entrance</text>
+
+          <!-- Domain services -->
+          <text class="dg-t-cap" x="44" y="190" font-size="9.5">The domain services — each owns its own data; none reaches into another's store</text>
+          <!-- row 1 -->
+          <rect class="dg-svc" x="44" y="196" width="158" height="54" rx="9"/>
+          <text class="dg-t-svc" x="123" y="217" text-anchor="middle" font-size="12">Booking, inventory</text>
+          <text class="dg-t-svc" x="123" y="231" text-anchor="middle" font-size="12">&amp; pricing</text>
+          <text class="dg-t-sub" x="123" y="244" text-anchor="middle" font-size="9">live availability &amp; fares</text>
+          <rect class="dg-svc-hi" x="216" y="196" width="158" height="54" rx="9"/>
+          <text class="dg-t-svc" x="295" y="220" text-anchor="middle" font-size="12.5">Ticketing</text>
+          <text class="dg-t-sub" x="295" y="236" text-anchor="middle" font-size="9">kept exactly consistent</text>
+          <rect class="dg-svc" x="388" y="196" width="158" height="54" rx="9"/>
+          <text class="dg-t-svc" x="467" y="220" text-anchor="middle" font-size="12.5">Paths &amp; slots</text>
+          <text class="dg-t-sub" x="467" y="236" text-anchor="middle" font-size="9">the right to run</text>
+          <rect class="dg-svc-hi" x="560" y="196" width="158" height="54" rx="9"/>
+          <text class="dg-t-svc" x="639" y="220" text-anchor="middle" font-size="12.5">Payments</text>
+          <text class="dg-t-sub" x="639" y="236" text-anchor="middle" font-size="9">kept exactly consistent</text>
+          <!-- row 2 -->
+          <rect class="dg-svc" x="44" y="266" width="158" height="54" rx="9"/>
+          <text class="dg-t-svc" x="123" y="290" text-anchor="middle" font-size="12.5">Fleet &amp; maintenance</text>
+          <text class="dg-t-sub" x="123" y="306" text-anchor="middle" font-size="9">certified &amp; serviceable</text>
+          <rect class="dg-svc" x="216" y="266" width="158" height="54" rx="9"/>
+          <text class="dg-t-svc" x="295" y="290" text-anchor="middle" font-size="12.5">Hospitality &amp; meals</text>
+          <text class="dg-t-sub" x="295" y="306" text-anchor="middle" font-size="9">galley order queue</text>
+          <rect class="dg-svc" x="388" y="266" width="158" height="54" rx="9"/>
+          <text class="dg-t-svc" x="467" y="290" text-anchor="middle" font-size="12.5">Loyalty</text>
+          <text class="dg-t-sub" x="467" y="306" text-anchor="middle" font-size="9">points ledger</text>
+          <rect class="dg-svc" x="560" y="266" width="158" height="54" rx="9"/>
+          <text class="dg-t-svc" x="639" y="290" text-anchor="middle" font-size="12.5">Integration hub</text>
+          <text class="dg-t-sub" x="639" y="306" text-anchor="middle" font-size="9">to the rail networks</text>
+
+          <!-- Event bus -->
+          <rect class="dg-bus" x="44" y="346" width="674" height="32" rx="11"/>
+          <text class="dg-t-svc" x="381" y="366" text-anchor="middle" font-size="11.5">The event bus — the durable spine; every service announces its changes here</text>
+
+          <!-- gutter: external + analytics + warehouse -->
+          <rect class="dg-co" x="768" y="104" width="180" height="40" rx="10"/>
+          <text class="dg-t-label" x="858" y="122" text-anchor="middle" font-size="11">Insight &amp; analytics</text>
+          <text class="dg-t-role dg-role-co" x="858" y="136" text-anchor="middle" font-size="8">COMPANY · read-only</text>
+          <rect class="dg-ext" x="768" y="158" width="180" height="40" rx="10"/>
+          <text class="dg-t-label" x="858" y="176" text-anchor="middle" font-size="11">Payment providers</text>
+          <text class="dg-t-sub" x="858" y="189" text-anchor="middle" font-size="8.5">Adyen · Stripe</text>
+          <rect class="dg-ext" x="768" y="212" width="180" height="40" rx="10"/>
+          <text class="dg-t-label" x="858" y="229" text-anchor="middle" font-size="11">Rail networks</text>
+          <text class="dg-t-sub" x="858" y="242" text-anchor="middle" font-size="8">DB · Infrabel · SNCF (read-mostly)</text>
+          <!-- data warehouse cylinder -->
+          <path class="dg-dw" d="M778 312 a80 12 0 0 0 160 0 L938 370 a80 12 0 0 1 -160 0 Z"/>
+          <ellipse class="dg-dw" cx="858" cy="312" rx="80" ry="12"/>
+          <text class="dg-t-svc" x="858" y="342" text-anchor="middle" font-size="11">Reporting</text>
+          <text class="dg-t-sub" x="858" y="356" text-anchor="middle" font-size="8.5">walled-off · read-only</text>
+          <text class="dg-t-line" x="724" y="350" font-size="8.5">event-driven</text>
+
+          <!-- THE TRAIN (edge gateway) -->
+          <rect class="dg-train" x="70" y="448" width="180" height="40" rx="10"/>
+          <rect class="dg-win" x="84" y="455" width="15" height="12" rx="2"/>
+          <rect class="dg-win" x="106" y="455" width="15" height="12" rx="2"/>
+          <rect class="dg-win" x="128" y="455" width="15" height="12" rx="2"/>
+          <rect class="dg-win" x="206" y="455" width="16" height="12" rx="2"/>
+          <line class="dg-stripe" x1="78" y1="479" x2="242" y2="479"/>
+          <circle class="dg-wheel" cx="104" cy="494" r="7"/>
+          <circle class="dg-wheel" cx="212" cy="494" r="7"/>
+          <text class="dg-t-label" x="160" y="514" text-anchor="middle" font-size="13">The train — on-board brain</text>
+          <text class="dg-t-sub" x="160" y="528" text-anchor="middle" font-size="9.5">edge gateway · IoT · offline-first</text>
+          <text class="dg-t-off" x="176" y="416" font-size="10">works offline · syncs on reconnect</text>
+        </svg>
+      </div>
+      <p class="bpcap">The gold-edged services — <b>ticketing</b> and <b>payments</b> — are the two held to strict, no-double-booking consistency; everything else trades a little strictness for resilience and speed. The hub on the right reaches out to the rail networks and payment providers, and the train carries its own slice of the platform, which is why life on board survives a lost signal.</p>
+    </div>
+  </section>
+
+</div>
+
+<div class="hint" id="hint">Use ← → arrow keys, or click the arrows below</div>
+<nav class="nav">
+  <button class="arrow" id="prev" aria-label="Previous slide">‹</button>
+  <div class="dots" id="dots"></div>
+  <button class="arrow" id="next" aria-label="Next slide">›</button>
+</nav>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var phases = ['phase-day','phase-dusk','phase-night','phase-dawn'];
+  var idx = 0;
+  var dotsWrap = document.getElementById('dots');
+  var prevBtn = document.getElementById('prev');
+  var nextBtn = document.getElementById('next');
+  var curEl = document.getElementById('cur');
+  var totEl = document.getElementById('tot');
+  var progEl = document.getElementById('progress');
+  var hintEl = document.getElementById('hint');
+  totEl.textContent = slides.length;
+
+  // build dots
+  slides.forEach(function(s, i){
+    var b = document.createElement('button');
+    b.className = 'dotnav' + (i===0?' on':'');
+    b.setAttribute('aria-label', 'Go to slide ' + (i+1));
+    b.addEventListener('click', function(){ go(i); });
+    dotsWrap.appendChild(b);
+  });
+  var dots = Array.prototype.slice.call(dotsWrap.children);
+
+  function applyPhase(i){
+    var p = 'phase-' + slides[i].getAttribute('data-phase');
+    phases.forEach(function(c){ document.body.classList.remove(c); });
+    document.body.classList.add(p);
+  }
+
+  function go(i){
+    if(i < 0 || i >= slides.length || i === idx) return;
+    slides[idx].classList.remove('active');
+    dots[idx].classList.remove('on');
+    idx = i;
+    slides[idx].classList.add('active');
+    slides[idx].scrollTop = 0;
+    dots[idx].classList.add('on');
+    applyPhase(idx);
+    curEl.textContent = idx + 1;
+    progEl.style.width = ((idx)/(slides.length-1)*100) + '%';
+    prevBtn.disabled = idx === 0;
+    nextBtn.disabled = idx === slides.length - 1;
+    hintEl.classList.add('hide');
+  }
+
+  prevBtn.addEventListener('click', function(){ go(idx-1); });
+  nextBtn.addEventListener('click', function(){ go(idx+1); });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight' || e.key === 'PageDown'){ go(idx+1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ go(idx-1); }
+    else if(e.key === 'Home'){ go(0); }
+    else if(e.key === 'End'){ go(slides.length-1); }
+  });
+
+  // init
+  prevBtn.disabled = true;
+  progEl.style.width = '0%';
+  applyPhase(0);
+</script>
+</body>
+</html>

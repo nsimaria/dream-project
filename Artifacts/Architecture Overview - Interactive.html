@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rail platform — architecture overview (interactive)</title>
+<style>
+  :root{
+    --bg:#faf9f5; --panel:#ffffff; --text:#211f1c; --muted:#6b6a64;
+    --border:rgba(0,0,0,.14); --border2:rgba(0,0,0,.28);
+    --edge:#9a988f; --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#1e1d1b; --panel:#262522; --text:#f3f1ea; --muted:#a9a79e;
+      --border:rgba(255,255,255,.16); --border2:rgba(255,255,255,.30); --edge:#7d7b73; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.6;
+    -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:980px;margin:0 auto;padding:28px 20px 60px;}
+  h1{font-size:22px;font-weight:500;margin:0 0 4px;}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:680px;}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;align-items:center;}
+  .controls .grp-label{font-size:12px;color:var(--muted);margin-right:2px;}
+  button{font-family:inherit;font-size:13px;color:var(--text);background:transparent;
+    border:.5px solid var(--border2);border-radius:8px;padding:7px 12px;cursor:pointer;transition:background .12s,border-color .12s;}
+  button:hover{background:rgba(125,125,125,.12);}
+  button.on{border-color:currentColor;background:rgba(125,125,125,.14);font-weight:500;}
+  button.reset{margin-left:auto;}
+  .stage{background:var(--panel);border:.5px solid var(--border);border-radius:12px;padding:8px 6px;}
+  svg{width:100%;height:auto;display:block;}
+  .nrect{transition:opacity .18s;}
+  .edge{fill:none;stroke:var(--edge);stroke-width:1.4;opacity:.22;transition:opacity .18s,stroke .18s,stroke-width .18s;}
+  .ntitle{font-size:13px;font-weight:500;}
+  .nsub{font-size:11px;}
+  .elabel{font-size:11px;fill:var(--muted);}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:16px 2px 0;font-size:12px;color:var(--muted);}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .swatch{width:12px;height:12px;border-radius:3px;border:.5px solid var(--border2);display:inline-block;}
+  .detail{margin-top:18px;background:var(--panel);border:.5px solid var(--border);border-radius:12px;
+    padding:14px 18px;min-height:78px;}
+  .detail h2{font-size:15px;font-weight:500;margin:0 0 4px;}
+  .detail p{margin:0;font-size:14px;color:var(--muted);}
+  .detail .dtag{display:inline-block;font-size:11px;color:var(--muted);border:.5px solid var(--border2);
+    border-radius:6px;padding:1px 7px;margin:8px 6px 0 0;}
+  .hint{font-size:12px;color:var(--muted);margin:10px 2px 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Rail platform — architecture overview</h1>
+  <p class="sub">The chapter 4 diagram, made interactive. Hover any component to trace its connections, click it for its role and decision records, or press a journey below to watch a real flow move through the system.</p>
+
+  <div class="controls" id="controls">
+    <span class="grp-label">Journeys:</span>
+    <button data-flow="book">Book a trip</button>
+    <button data-flow="climate">Set berth climate</button>
+    <button data-flow="retail">Third-party sale</button>
+    <button data-flow="im">IM running info</button>
+    <button data-flow="offline">Offline sync</button>
+    <button data-flow="analytics">Analytics</button>
+    <button class="reset" id="reset">Reset</button>
+  </div>
+
+  <div class="stage">
+    <svg id="diagram" viewBox="0 0 680 610" role="img" aria-label="Interactive architecture diagram of the rail platform">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+      <g id="edges"></g>
+      <g id="dots"></g>
+      <g id="nodes"></g>
+    </svg>
+  </div>
+
+  <div class="legend" id="legend"></div>
+
+  <div class="detail" id="detail">
+    <h2>Select a component</h2>
+    <p>Hover to highlight its links, or click for detail. The colour of each box is its identity / trust category — see the legend.</p>
+  </div>
+  <p class="hint">Built from the Target Architecture document, chapter 4. Decision records (D-NN) reference the same document.</p>
+</div>
+
+<script>
+const CAT = {
+  teal:{f:"#E1F5EE",s:"#1D9E75",t:"#0F6E56",ts:"#1D9E75",hl:"#1D9E75",name:"Passenger realm"},
+  amber:{f:"#FAEEDA",s:"#BA7517",t:"#854F0B",ts:"#BA7517",hl:"#BA7517",name:"Operator realm"},
+  purple:{f:"#EEEDFE",s:"#534AB7",t:"#3C3489",ts:"#534AB7",hl:"#534AB7",name:"Distribution channel"},
+  blue:{f:"#E6F1FB",s:"#185FA5",t:"#0C447C",ts:"#185FA5",hl:"#185FA5",name:"Backend domain"},
+  green:{f:"#EAF3DE",s:"#639922",t:"#27500A",ts:"#3B6D11",hl:"#3B6D11",name:"On-board edge"},
+  coral:{f:"#FAECE7",s:"#D85A30",t:"#993C1D",ts:"#D85A30",hl:"#D85A30",name:"The Lab"},
+  gray:{f:"#F1EFE8",s:"#888780",t:"#444441",ts:"#5F5E5A",hl:"#5F5E5A",name:"External / corporate"},
+  band:{f:"#CFE2F6",s:"#378ADD",t:"#0C447C",ts:"#185FA5",hl:"#185FA5",name:"Identity boundary"},
+  bus:{f:"#3C3C3A",s:"#5F5E5A",t:"#F1EFE8",ts:"#D3D1C7",hl:"#BA7517",name:"Event bus"}
+};
+
+const N = {
+  pax:{x:45,y:24,w:132,h:40,cx:111,cat:"teal",t:"Passengers",s:"consumers",
+    role:"Consumers who search, book and travel. Authenticate in the Passenger realm.",d:["D-05"]},
+  staff:{x:190,y:24,w:132,h:40,cx:256,cat:"amber",t:"Operating staff",s:"ops & crew",
+    role:"On-board and ground crew. Operator realm with mandatory MFA, HR-provisioned.",d:["D-05"]},
+  ota:{x:335,y:24,w:132,h:40,cx:401,cat:"purple",t:"Retailers",s:"OTAs, rail",
+    role:"Third-party retailers (OTAs, incumbent rail retail) selling through the Distribution API under per-channel terms.",d:["D-20"]},
+  corp:{x:480,y:24,w:155,h:40,cx:557,cat:"gray",t:"Corporate",s:"execs, analysts",
+    role:"Execs, commercial and data teams. Company realm — read-only, role-scoped access to the warehouse only.",d:["D-05"]},
+
+  pweb:{x:44,y:104,w:112,h:46,cx:100,cat:"teal",t:"Passenger",s:"web app",
+    role:"Passenger web app — booking and the core trip experience.",d:[]},
+  pmob:{x:164,y:104,w:112,h:46,cx:220,cat:"teal",t:"Passenger",s:"mobile app",
+    role:"Passenger mobile (iOS/Android). Talks to the backend online and directly to the train edge gateway for cabin and facility controls.",d:[]},
+  opsweb:{x:284,y:104,w:112,h:46,cx:340,cat:"amber",t:"Operations",s:"web app",
+    role:"Operations management — full trip lifecycle, path/slot workflow, live tracking and incidents.",d:[]},
+  opapp:{x:404,y:104,w:112,h:46,cx:460,cat:"amber",t:"Operator",s:"Android app",
+    role:"Operator app — Android only, role-based, fully offline-capable; syncs via the edge gateway.",d:["D-10"]},
+  dist:{x:524,y:104,w:112,h:46,cx:580,cat:"purple",t:"Distribution",s:"API · OSDM",
+    role:"Distribution & Retail API — outbound B2B sales channel, OSDM-conformant, over the shared booking/inventory backend.",d:["D-20"]},
+
+  pbff:{x:86,y:178,w:148,h:44,cx:160,cat:"teal",t:"Passenger BFF",s:"token edge",
+    role:"Backend-for-frontend. Terminates the Passenger-realm token and exchanges it for one internal token.",d:["D-04","D-06"]},
+  obff:{x:326,y:178,w:148,h:44,cx:400,cat:"amber",t:"Operator BFF",s:"token edge",
+    role:"Backend-for-frontend. Terminates the Operator-realm token and exchanges it for one internal token.",d:["D-04","D-06"]},
+  dbff:{x:506,y:178,w:130,h:44,cx:571,cat:"purple",t:"Distribution BFF",s:"per-channel",
+    role:"Backend-for-frontend for retail channels — per-channel identity, scopes and rate limits.",d:["D-04","D-20"]},
+
+  boundary:{x:44,y:236,w:592,h:26,cx:340,cat:"band",bar:1,t:"Internal trust domain · token exchange (D-06) · service-mesh mTLS",
+    role:"A single internal trust domain. Services validate one internal issuer; the realm travels inward as a claim and service-to-service calls authenticate by workload identity.",d:["D-06"]},
+
+  trip:{x:44,y:276,w:134,h:46,cx:111,cat:"blue",t:"Trip · inventory",s:"pricing, yield",
+    role:"Trip lifecycle, inventory (seats/berths/suites/meal slots) and pricing/yield. Sole owner of its data.",d:["D-01"]},
+  ticketing:{x:192,y:276,w:134,h:46,cx:259,cat:"blue",t:"Ticketing",s:"strong consist.",
+    role:"Ticket issuance. Strong consistency inside the service — no double-booking across any channel.",d:["D-11"]},
+  payments:{x:340,y:276,w:134,h:46,cx:407,cat:"blue",t:"Payments",s:"strong consist.",
+    role:"Adyen primary, Stripe fallback behind a per-market abstraction. Strong consistency — no double-charging.",d:["D-07","D-11"]},
+  path:{x:488,y:276,w:134,h:46,cx:555,cat:"blue",t:"Path & slot",s:"gates trips",
+    role:"Path & slot registry mirroring PCS/IM state. Held-path state hard-gates trip scheduling.",d:["D-12"]},
+
+  bus:{x:44,y:332,w:592,h:28,cx:340,cat:"bus",bar:1,t:"Event bus · durable, at-least-once · transactional outbox (D-01/D-02)",
+    role:"Durable, at-least-once event bus. Transport for domain events, not a source of truth. Outbox publishing, idempotent consumers.",d:["D-01","D-02"]},
+
+  fleet:{x:44,y:372,w:134,h:46,cx:111,cat:"blue",t:"Fleet",s:"maintenance, ERA",
+    role:"Fleet registry and maintenance. Maintenance state and ERA vehicle authorisation hard-gate trip assignment.",d:["D-13"]},
+  loyalty:{x:192,y:372,w:134,h:46,cx:259,cat:"blue",t:"Loyalty",s:"event ledger",
+    role:"In-house loyalty on an immutable event ledger; balances are always derived, never stored.",d:["D-14"]},
+  hospitality:{x:340,y:372,w:134,h:46,cx:407,cat:"blue",t:"Hospitality",s:"meals",
+    role:"Meal order capture, galley/kitchen queue, preparation and delivery status.",d:[]},
+  hub:{x:488,y:372,w:134,h:46,cx:555,cat:"blue",t:"Integration hub",s:"external systems",
+    role:"Integration hub — one read-mostly adapter per IM over a unified operational-data model, plus PSP integration.",d:["D-16"]},
+
+  teg:{x:44,y:440,w:150,h:46,cx:119,cat:"green",t:"Train edge gateway",s:"device shadows",
+    role:"On-board compute — IoT device shadows, offline-first control, resilient sync to the bus when uplink is available.",d:["D-17"]},
+  lab:{x:210,y:440,w:130,h:46,cx:275,cat:"coral",t:"The Lab",s:"rig + cabin",
+    role:"Scaled-model fleet rig (rung 3) and cabin prototype (rung 4). Run the same adapter contract as production; physical instrument for retiring the offline-sync risk.",d:["D-19"]},
+  im:{x:356,y:440,w:140,h:46,cx:426,cat:"gray",t:"Infra. managers",s:"TIS · PCS",
+    role:"DB InfraGo, Infrabel, SNCF Réseau. Read-mostly running info via TIS; carrier obligations via portals and PCS.",d:["D-15","D-16"]},
+  psp:{x:512,y:440,w:124,h:46,cx:574,cat:"gray",t:"Payment PSPs",s:"Adyen / Stripe",
+    role:"Payment service providers behind the payment abstraction layer.",d:["D-07"]},
+
+  iot:{x:44,y:520,w:150,h:46,cx:119,cat:"green",t:"IoT devices",s:"doors, climate",
+    role:"On-board IoT — doors, climate, berth locks, facility sensors. Facility state is real-time only, never persisted.",d:["D-17"]},
+  dw:{x:470,y:520,w:166,h:46,cx:553,cat:"gray",t:"Data warehouse",s:"analytics, BI",
+    role:"Data warehouse & analytics. Event-driven ingestion from the bus; no direct queries against production.",d:[]}
+};
+
+const E = [
+  ["e1","pax","pweb",[[111,64],[100,104]]],
+  ["e2","pax","pmob",[[111,64],[220,104]]],
+  ["e3","staff","opsweb",[[256,64],[340,104]]],
+  ["e4","staff","opapp",[[256,64],[460,104]]],
+  ["e5","ota","dist",[[401,64],[580,104]]],
+  ["e6","corp","dw",[[557,64],[656,64],[656,543],[636,543]]],
+  ["e7","pweb","pbff",[[100,150],[160,178]]],
+  ["e8","pmob","pbff",[[220,150],[160,178]]],
+  ["e9","opsweb","obff",[[340,150],[400,178]]],
+  ["e10","opapp","obff",[[460,150],[400,178]]],
+  ["e11","dist","dbff",[[580,150],[571,178]]],
+  ["e12","pbff","boundary",[[160,222],[160,236]]],
+  ["e13","obff","boundary",[[400,222],[400,236]]],
+  ["e14","dbff","boundary",[[571,222],[571,236]]],
+  ["e15","boundary","trip",[[111,262],[111,276]]],
+  ["e16","boundary","ticketing",[[259,262],[259,276]]],
+  ["e17","boundary","payments",[[407,262],[407,276]]],
+  ["e18","boundary","path",[[555,262],[555,276]]],
+  ["e19","trip","bus",[[111,322],[111,332]]],
+  ["e20","ticketing","bus",[[259,322],[259,332]]],
+  ["e21","payments","bus",[[407,322],[407,332]]],
+  ["e22","path","bus",[[555,322],[555,332]]],
+  ["e23","bus","fleet",[[111,360],[111,372]]],
+  ["e24","bus","loyalty",[[259,360],[259,372]]],
+  ["e25","bus","hospitality",[[407,360],[407,372]]],
+  ["e26","bus","hub",[[555,360],[555,372]]],
+  ["e27","pmob","teg",[[220,150],[220,166],[32,166],[32,460],[44,460]],"dash","direct"],
+  ["e28","teg","bus",[[140,440],[185,440],[185,360]],null,"sync"],
+  ["e29","teg","fleet",[[100,440],[100,418]],"dash","TCMS"],
+  ["e30","teg","iot",[[119,486],[119,520]]],
+  ["e31","hub","im",[[555,418],[426,440]]],
+  ["e32","payments","psp",[[440,322],[481,322],[481,434],[560,434],[560,440]],null,"PSP"],
+  ["e33","lab","teg",[[210,463],[194,463]],"dash","contract"],
+  ["e34","bus","dw",[[636,346],[646,346],[646,540],[636,540]],null,"events"]
+];
+
+const FLOWS = {
+  book:{nodes:["pax","pweb","pbff","boundary","trip","ticketing","payments","psp"],
+    edges:[["e1"],["e7"],["e12"],["e15"],["e16"],["e17"],["e32"]],color:"#185FA5"},
+  climate:{nodes:["pmob","teg","iot"],edges:[["e27"],["e30"]],color:"#1D9E75"},
+  retail:{nodes:["ota","dist","dbff","boundary","trip","ticketing"],
+    edges:[["e5"],["e11"],["e14"],["e15"],["e16"]],color:"#534AB7"},
+  im:{nodes:["im","hub","bus"],edges:[["e31","rev"],["e26","rev"]],color:"#BA7517"},
+  offline:{nodes:["teg","bus","fleet","loyalty","hospitality","hub"],
+    edges:[["e28"],["e23"],["e24"],["e25"],["e26"]],color:"#D85A30"},
+  analytics:{nodes:["bus","dw","corp"],edges:[["e34"],["e6","rev"]],color:"#5F5E5A"}
+};
+
+const SVGNS="http://www.w3.org/2000/svg";
+const el=(t,a)=>{const e=document.createElementNS(SVGNS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+const edgesG=document.getElementById("edges");
+const nodesG=document.getElementById("nodes");
+const dotsG=document.getElementById("dots");
+const edgeEls={}, edgeGeom={}, adj={};
+
+function d2(pts){return "M"+pts.map(p=>p[0]+" "+p[1]).join(" L ");}
+function geom(pts){let segs=[],L=0;for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i];
+  const dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy);segs.push({x:a[0],y:a[1],dx,dy,l});L+=l;}return{segs,L};}
+function posAt(g,t){let d=t*g.L;for(const s of g.segs){if(d<=s.l)return[s.x+s.dx*(d/s.l),s.y+s.dy*(d/s.l)];d-=s.l;}
+  const last=g.segs[g.segs.length-1];return[last.x+last.dx,last.y+last.dy];}
+
+E.forEach(([id,from,to,pts,dash,lbl])=>{
+  const p=el("path",{id,class:"edge",d:d2(pts),"marker-end":"url(#arrow)"});
+  if(dash)p.setAttribute("stroke-dasharray","5 4");
+  edgesG.appendChild(p);
+  edgeEls[id]={el:p,from,to,pts,dash,lbl};edgeGeom[id]=geom(pts);
+  (adj[from]=adj[from]||new Set()).add(id);(adj[to]=adj[to]||new Set()).add(id);
+});
+
+const nodeEls={};
+for(const id in N){
+  const n=N[id],c=CAT[n.cat];
+  const g=el("g",{class:"node",style:"cursor:pointer"});
+  g.appendChild(el("rect",{class:"nrect",x:n.x,y:n.y,width:n.w,height:n.h,rx:n.bar?5:7,
+    fill:c.f,stroke:c.s,"stroke-width":n.bar?0.8:0.8}));
+  if(n.bar){
+    const tx=el("text",{class:"ntitle",x:n.cx,y:n.y+n.h/2+0.5,"text-anchor":"middle","dominant-baseline":"central",
+      fill:c.t,"font-size":"11.5"});tx.textContent=n.t;g.appendChild(tx);
+  }else{
+    const tt=el("text",{class:"ntitle",x:n.cx,y:n.y+n.h*0.40,"text-anchor":"middle","dominant-baseline":"central",fill:c.t});
+    tt.textContent=n.t;g.appendChild(tt);
+    if(n.s){const st=el("text",{class:"nsub",x:n.cx,y:n.y+n.h*0.70,"text-anchor":"middle","dominant-baseline":"central",fill:c.ts});
+      st.textContent=n.s;g.appendChild(st);}
+  }
+  g.addEventListener("mouseenter",()=>{if(!pinned)hoverHighlight(id);});
+  g.addEventListener("mouseleave",()=>{if(!pinned)applyState();});
+  g.addEventListener("click",e=>{e.stopPropagation();pinNode(id);});
+  nodesG.appendChild(g);nodeEls[id]=g;
+}
+
+// legend
+const legend=document.getElementById("legend");
+["teal","amber","purple","blue","green","coral","gray","bus"].forEach(k=>{
+  const c=CAT[k];const s=document.createElement("span");
+  s.innerHTML='<span class="swatch" style="background:'+c.f+';border-color:'+c.s+'"></span>'+c.name;
+  legend.appendChild(s);
+});
+
+let pinned=false, activeFlow=null, raf=null;
+const detail=document.getElementById("detail");
+
+function setDots(list){dotsG.innerHTML="";return list.map((id,i)=>{
+  const c=el("circle",{r:4.2,fill:FLOWS[activeFlow].color,opacity:"0"});dotsG.appendChild(c);return c;});}
+
+function clearDots(){dotsG.innerHTML="";if(raf){cancelAnimationFrame(raf);raf=null;}}
+
+function applyState(){
+  // base: edges faint, nodes full
+  for(const id in edgeEls){const p=edgeEls[id].el;p.style.stroke="";p.style.strokeWidth="";p.style.opacity=".22";}
+  for(const id in nodeEls){nodeEls[id].querySelector(".nrect").style.opacity="1";}
+  clearDots();
+  if(activeFlow){drawFlow(activeFlow);}
+  else if(pinNodeId){hoverHighlight(pinNodeId,true);}
+}
+
+let pinNodeId=null;
+function hoverHighlight(id,keep){
+  const inc=adj[id]||new Set();
+  const near=new Set([id]);
+  inc.forEach(eid=>{near.add(edgeEls[eid].from);near.add(edgeEls[eid].to);});
+  for(const nid in nodeEls){nodeEls[nid].querySelector(".nrect").style.opacity=near.has(nid)?"1":"0.16";}
+  for(const eid in edgeEls){const p=edgeEls[eid].el;
+    if(inc.has(eid)){p.style.stroke=CAT[N[id].cat].hl;p.style.strokeWidth="2.4";p.style.opacity="1";}
+    else{p.style.opacity="0.05";}}
+}
+
+function pinNode(id){
+  activeFlow=null;document.querySelectorAll(".controls button").forEach(b=>b.classList.remove("on"));
+  pinned=true;pinNodeId=id;clearDots();hoverHighlight(id);
+  const n=N[id];
+  detail.innerHTML="<h2>"+n.t+(n.s?" — "+n.s:"")+"</h2><p>"+n.role+"</p>"+
+    (n.d&&n.d.length?n.d.map(x=>'<span class="dtag">'+x+'</span>').join(""):"");
+}
+
+function drawFlow(key){
+  const f=FLOWS[key];
+  const nodeSet=new Set(f.nodes);
+  const edgeIds=f.edges.map(e=>e[0]);
+  const edgeSet=new Set(edgeIds);
+  for(const nid in nodeEls){nodeEls[nid].querySelector(".nrect").style.opacity=nodeSet.has(nid)?"1":"0.14";}
+  for(const eid in edgeEls){const p=edgeEls[eid].el;
+    if(edgeSet.has(eid)){p.style.stroke=f.color;p.style.strokeWidth="2.6";p.style.opacity="1";}
+    else{p.style.opacity="0.04";}}
+  // animate dots travelling along each highlighted edge, staggered into a wave
+  dotsG.innerHTML="";
+  const dots=f.edges.map(()=>{const c=el("circle",{r:4.4,fill:f.color});dotsG.appendChild(c);return c;});
+  const dur=1500, stagger=320, total=dur+stagger*(f.edges.length-1)+700;
+  const start=performance.now();
+  function frame(now){
+    const elapsed=(now-start)%total;
+    f.edges.forEach(([eid,rev],i)=>{
+      const local=elapsed-i*stagger;const dot=dots[i];
+      if(local<0||local>dur){dot.setAttribute("opacity","0");return;}
+      let t=local/dur;if(rev)t=1-t;
+      const [x,y]=posAt(edgeGeom[eid],t);
+      dot.setAttribute("cx",x);dot.setAttribute("cy",y);dot.setAttribute("opacity","1");
+    });
+    raf=requestAnimationFrame(frame);
+  }
+  raf=requestAnimationFrame(frame);
+}
+
+const FLOWLABEL={book:"Book a trip",climate:"Set berth climate",retail:"Third-party sale",
+  im:"IM running info",offline:"Offline sync & reconnect",analytics:"Analytics ingestion"};
+const FLOWDESC={
+  book:"A passenger books: app → BFF (token terminated) → internal domain → trip/inventory, ticketing (strong consistency) and payments → PSP.",
+  climate:"The passenger app reaches the train edge gateway directly and sets a berth control; the device shadow drives the physical actuator — works offline.",
+  retail:"A third-party retailer sells through the OSDM Distribution API over the same booking and ticketing domains the first-party apps use — no double-booking.",
+  im:"Running information flows the other way: from the infrastructure managers via the integration hub onto the bus, then out to ops and passengers.",
+  offline:"On reconnect the edge gateway syncs its local log to the bus; backend domains consume and reconcile. The highest-risk part of the platform.",
+  analytics:"Domain events are ingested from the bus into the warehouse; corporate users read it role-scoped — never touching production databases."
+};
+
+document.querySelectorAll(".controls button[data-flow]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    const key=btn.dataset.flow;
+    document.querySelectorAll(".controls button").forEach(b=>b.classList.remove("on"));
+    if(activeFlow===key){activeFlow=null;pinned=false;pinNodeId=null;applyState();resetDetail();return;}
+    btn.classList.add("on");activeFlow=key;pinned=true;pinNodeId=null;
+    drawFlow(key);
+    detail.innerHTML="<h2>"+FLOWLABEL[key]+"</h2><p>"+FLOWDESC[key]+"</p>";
+  });
+});
+
+function resetDetail(){detail.innerHTML="<h2>Select a component</h2><p>Hover to highlight its links, or click for detail. The colour of each box is its identity / trust category — see the legend.</p>";}
+document.getElementById("reset").addEventListener("click",()=>{
+  activeFlow=null;pinned=false;pinNodeId=null;
+  document.querySelectorAll(".controls button").forEach(b=>b.classList.remove("on"));
+  applyState();resetDetail();
+});
+document.getElementById("diagram").addEventListener("click",()=>{
+  if(pinned&&!activeFlow){pinned=false;pinNodeId=null;applyState();resetDetail();}
+});
+
+applyState();
+</script>
+</body>
+</html>
