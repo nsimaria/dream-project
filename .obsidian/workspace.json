@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "CLAUDE.md",
+                "file": "Slices/S-00-repo-bootstrap/S-00-01-backend-alive.md",
                 "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "CLAUDE"
+              "title": "S-00-01-backend-alive"
             }
           }
         ]
@@ -184,5 +184,16 @@
     }
   },
   "active": "74a9930d59ce50b4",
-  "lastOpenFiles": []
+  "lastOpenFiles": [
+    "Slices/S-00-repo-bootstrap/S-00-repo-bootstrap.md",
+    "Slices/S-00-repo-bootstrap/S-00-01-backend-alive.md",
+    "Slices/S-02-contract-toolchain-conformance-harness/S-02-contract-toolchain-conformance-harness.md",
+    "Slices/S-00-repo-bootstrap/S-00-05-orchestration.md",
+    "Slices/S-00-repo-bootstrap/S-00-04-edge-alive.md",
+    "Slices/S-00-repo-bootstrap/S-00-03-operator-android-app-alive.md",
+    "Slices/S-00-repo-bootstrap/S-00-02-passenger-web-app-alive.md",
+    "Slices/S-00-repo-bootstrap/S-00-01-repo-skeleton.md",
+    "Slices/S-01-repo-module-ci-scaffold/S-01-repo-module-ci-scaffold.md",
+    "CLAUDE.md"
+  ]
 }

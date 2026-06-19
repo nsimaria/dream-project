@@ -35,7 +35,7 @@ The walking skeleton (book → pay → ticket → validate offline at the edge �
 
 | ID | Slice | Depends on |
 |---|---|---|
-| S-00 | Repo bootstrap — per-surface repos + contracts + dream-orchestration; every stack boots and proves itself alive | — |
+| S-00 | Repo bootstrap — stand up each per-surface repo one at a time (hello-world app + own CI), then wrap them into dream-orchestration; every stack boots and proves itself alive | — |
 | S-01 | Module boundaries + CI gates + infra skeleton | S-00 |
 | S-02 | Contract-first toolchain + conformance harness skeleton | S-01 |
 | S-03 | Rung-1 in-memory train sim + `make train` | S-02 |
