@@ -28,7 +28,7 @@ S-00 leaves the stacks each in their own repo, building, booting, and proving th
 
 ## Seams & contracts
 - `dream-backend` repo: `settings.gradle.kts`, `build.gradle.kts`
-- Each repo's `.gitlab-ci.yml` (+ `dream-orchestration/.gitlab-ci.yml`)
+- Each repo's GitHub Actions workflows under `.github/workflows/` (+ `dream-orchestration`'s)
 - `dream-infra` repo: `terraform/`
 - ArchUnit/Modulith rules in the `dream-backend` repo's `src/test`
 - `dream-backend` repo `**/db/migration` (Flyway)
@@ -50,4 +50,4 @@ S-00 leaves the stacks each in their own repo, building, booting, and proving th
 - Cloud provider/region for the managed cluster — thin ADR if not yet chosen (region must be EU/EEA regardless).
 
 ## Converges into
-The `dream-backend` repo module structure, each repo's `.gitlab-ci.yml`, the ArchUnit/Modulith rules, the Pact contracts, the `dream-infra` repo's Terraform modules, the Flyway baselines.
+The `dream-backend` repo module structure, each repo's GitHub Actions workflows under `.github/workflows/`, the ArchUnit/Modulith rules, the Pact contracts, the `dream-infra` repo's Terraform modules, the Flyway baselines.

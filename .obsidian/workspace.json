@@ -14,7 +14,7 @@
               "type": "markdown",
               "state": {
                 "file": "Slices/S-00-repo-bootstrap/S-00-01-backend-alive.md",
-                "mode": "preview",
+                "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
@@ -183,15 +183,15 @@
       "bases:Create new base": false
     }
   },
-  "active": "74a9930d59ce50b4",
+  "active": "d1254da87a85437e",
   "lastOpenFiles": [
-    "Slices/S-00-repo-bootstrap/S-00-repo-bootstrap.md",
+    "Slices/S-00-repo-bootstrap/S-00-02-passenger-web-app-alive.md",
     "Slices/S-00-repo-bootstrap/S-00-01-backend-alive.md",
+    "Slices/S-00-repo-bootstrap/S-00-repo-bootstrap.md",
     "Slices/S-02-contract-toolchain-conformance-harness/S-02-contract-toolchain-conformance-harness.md",
     "Slices/S-00-repo-bootstrap/S-00-05-orchestration.md",
     "Slices/S-00-repo-bootstrap/S-00-04-edge-alive.md",
     "Slices/S-00-repo-bootstrap/S-00-03-operator-android-app-alive.md",
-    "Slices/S-00-repo-bootstrap/S-00-02-passenger-web-app-alive.md",
     "Slices/S-00-repo-bootstrap/S-00-01-repo-skeleton.md",
     "Slices/S-01-repo-module-ci-scaffold/S-01-repo-module-ci-scaffold.md",
     "CLAUDE.md"

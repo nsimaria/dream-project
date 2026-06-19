@@ -16,7 +16,7 @@ _Draft · June 2026 · Companion to MVP Proposal.md and Target Architecture.md_
 | Database | **PostgreSQL** | One schema per domain (D-01) |
 | Train Edge Gateway | **Go** | On-board offline node (§6.4) |
 | Contracts | **OpenAPI** (+ AsyncAPI, JSON Schema) | Machine-readable source of truth (D-18) |
-| Platform / CI-CD | **Terraform + GitLab CI** | One EU-region K8s cluster |
+| Platform / CI-CD | **Terraform + GitHub Actions** | One EU-region K8s cluster |
 | Repository | **Multi-repo: one per surface/component + contracts + dream-orchestration** | Contracts shared via git submodule; dream-orchestration repo owns `make train` |
 | Testing | Per stack — see below | Conformance suite is the keystone (§8.2) |
 
@@ -36,7 +36,7 @@ _Draft · June 2026 · Companion to MVP Proposal.md and Target Architecture.md_
 
 **Contracts — OpenAPI (+ AsyncAPI, JSON Schema).** Contract-first is a structural commitment (D-18): the machine-readable contracts are the source of truth from which clients, fakes, and the conformance suite are generated — not documentation written after the code. Three contract languages cover the three interaction styles the MVP has: **OpenAPI** for the REST APIs (backend, web, Android), **AsyncAPI** for the edge↔backend sync messages, and **JSON Schema** for the device shadows. `openapi-generator` produces server interfaces and typed clients; **Spectral** lints the specs in CI so they can't drift or degrade. This precedes the code it describes (MVP §3.2).
 
-**Platform / CI-CD — Terraform + GitLab CI.** Per the MVP's deliberate de-scoping of day-1 platform ceremony (§5 pushback #2): one EU-region managed Kubernetes cluster, containers, plain continuous delivery now — ArgoCD/Flux GitOps arrive with the second deployable and a bigger team. **Terraform** is the infrastructure-as-code tool, keeping the estate cloud-portable and honouring the cloud-agnostic intent (D-03) without committing to a proprietary control plane. **GitLab CI** runs the pipelines: build, test, container build, and deploy, with the M0 gate that CI is green with zero external systems (`make train`). EU/EEA-only residency is enforced at the cluster/region level (D-08). Observability is wired from the first service — OpenTelemetry traces, Prometheus + Grafana metrics, structured logs — so it is never a retrofit.
+**Platform / CI-CD — Terraform + GitHub Actions.** Per the MVP's deliberate de-scoping of day-1 platform ceremony (§5 pushback #2): one EU-region managed Kubernetes cluster, containers, plain continuous delivery now — ArgoCD/Flux GitOps arrive with the second deployable and a bigger team. **Terraform** is the infrastructure-as-code tool, keeping the estate cloud-portable and honouring the cloud-agnostic intent (D-03) without committing to a proprietary control plane. **GitHub Actions** runs the pipelines: build, test, container build, and deploy, with the M0 gate that CI is green with zero external systems (`make train`). EU/EEA-only residency is enforced at the cluster/region level (D-08). Observability is wired from the first service — OpenTelemetry traces, Prometheus + Grafana metrics, structured logs — so it is never a retrofit.
 
 ---
 

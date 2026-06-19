@@ -1,9 +1,11 @@
 # Slice S-00-01 — Backend (Java/Spring Boot): own repo, hello-world app, boots and proves alive, own CI
 
-> Status: Proposed
+> Status: Done
 > Depends on: —
 > Size: ≤ ½ day
 
+# Implementation Notes
+- We went with GitHub Actions for now, not GitLab.
 ## Outcome / why now
 The `dream-backend` repo exists on trunk with a hello-world Spring Boot app that boots, answers a liveness check under test, and is kept green by its own CI — giving the service tier its first independently green heartbeat and a known repo home for later module work.
 Serves: MVP §6 (M0), MVP Technical Choices (Java/Spring Boot; Gradle; multi-repo from day 1), D-19 (the service that later runs the same images everywhere starts here as a buildable app).

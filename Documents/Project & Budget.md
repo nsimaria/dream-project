@@ -34,7 +34,7 @@ A credible minimum at full ramp is **~11–13 engineers plus a thin specialist l
 | Edge / offline (Go) | 1–2 | Device shadows + the sync protocol; needs real distributed-systems depth, not a generalist |
 | Web (React/TS) | 1 | PWA, booking UX, accessibility-strong (TSI PRM is a day-one CI gate, D-08) |
 | Android (Kotlin) | 1 | Operator app (D-10) |
-| Platform / SRE | 1–2 | k8s, Terraform, GitLab CI, observability, EU/EEA residency (D-08) — non-negotiable |
+| Platform / SRE | 1–2 | k8s, Terraform, GitHub Actions, observability, EU/EEA residency (D-08) — non-negotiable |
 | Embedded / IoT | 1 | The Lab — BLE, sensors/actuators, edge hardware, firmware, BOM. Cannot be staffed with web developers |
 
 **Thin specialist layer (fractional or shared):** a security engineer (identity topology, payments, GDPR — §5.1) and accessibility-strong UX competence (whether in our org or adjacent).
@@ -105,7 +105,7 @@ Rough order-of-magnitude only — enough to size the programme, not a budget. As
 | 2 | ~€60k | ~€200k | **~€0.26M** |
 | 3 | ~€110k | ~€400k | **~€0.51M** |
 
-_SaaS line:_ GitLab seats, MDM for operator devices, error-tracking/dev tooling, eIDAS/KYC verification (low pre-launch), and optional managed identity/observability at production scale. _Cloud infra:_ managed k8s plus compute/storage/network across dev/staging/prod in an EU region, growing to HA/DR at production.
+_SaaS line:_ GitHub seats, MDM for operator devices, error-tracking/dev tooling, eIDAS/KYC verification (low pre-launch), and optional managed identity/observability at production scale. _Cloud infra:_ managed k8s plus compute/storage/network across dev/staging/prod in an EU region, growing to HA/DR at production.
 
 **Programme total (excluding Lab hardware capex)**
 
