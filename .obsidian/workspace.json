@@ -11,14 +11,10 @@
             "id": "6ae442e5c827deba",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Slices/S-00-repo-bootstrap/S-00-01-backend-alive.md",
-                "mode": "source",
-                "source": true
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "S-00-01-backend-alive"
+              "title": "New tab"
             }
           }
         ]
@@ -185,7 +181,20 @@
   },
   "active": "6ae442e5c827deba",
   "lastOpenFiles": [
+    "Slices/Done/S-00-02-passenger-web-app-alive.md",
+    "Slices/Done/S-00-01-backend-alive.md",
+    "Slices/Done",
+    "Slices/S-04-identity-keycloak-realms.md",
+    "Slices/S-03-rung1-sim-make-train.md",
+    "Slices/S-02-contract-toolchain-conformance-harness.md",
+    "Slices/S-01-repo-module-ci-scaffold.md",
     "Slices/S-00-repo-bootstrap/S-00-01-backend-alive.md",
+    "Slices/S-00-repo-bootstrap.md",
+    "Slices/S-00-05-orchestration.md",
+    "Slices/S-00-04-edge-alive.md",
+    "Slices/S-00-03-operator-android-app-alive.md",
+    "Slices/S-00-02-passenger-web-app-alive.md",
+    "Slices/S-00-01-backend-alive.md",
     "Slices/S-00-repo-bootstrap/S-00-02-passenger-web-app-alive.md",
     "Slices/S-00-repo-bootstrap/S-00-04-edge-alive.md",
     "TODO.md",
