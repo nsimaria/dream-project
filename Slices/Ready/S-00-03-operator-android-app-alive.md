@@ -1,6 +1,6 @@
 # Slice S-00-03 — Operator Android app (Kotlin/Compose): own repo, hello screen, assembles and proves alive, own CI
 
-> Status: Proposed
+> Status: Ready
 > Depends on: —
 > Size: ≤ ½ day
 
