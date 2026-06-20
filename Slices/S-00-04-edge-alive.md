@@ -17,7 +17,7 @@ The edge node is the last of the four stacks we stand up end to end, on its own.
 - **Go module at the repo root**; pinned Go version; a trivial health / `hello` HTTP handler.
 - **`go test ./...` passes** (handler returns healthy).
 - **Builds as a container image** (Dockerfile), honouring the same-images guardrail (D-19).
-- **The repo's own minimal `.gitlab-ci.yml`:** build + test on every push (`go build` + `go test ./...`). Build + test only; no gates.
+- **The repo's own minimal GitHub Actions workflow (`.github/workflows/ci.yml`):** build + test on every push (`go build` + `go test ./...`). Build + test only; no gates.
 
 **Out (deferred — and behind which seam):**
 - `dream-contracts` repo + git-submodule wiring → **S-02** (this repo is standalone; no submodule in S-00).
@@ -31,7 +31,7 @@ The edge node is the last of the four stacks we stand up end to end, on its own.
 - The health / `hello` handler
 - The Dockerfile
 - The Go health test
-- `dream-edge/.gitlab-ci.yml` (build + test)
+- `dream-edge/.github/workflows/ci.yml` (build + test)
 
 ## Acceptance criteria
 - Given a clean clone of `dream-edge`, when `go build` and `go test ./...` run, then both pass and the health handler returns healthy.
@@ -47,4 +47,4 @@ The edge node is the last of the four stacks we stand up end to end, on its own.
 - Pinned Go version — recorded in the repo.
 
 ## Converges into
-The `dream-edge` repo, its Go module, the health/`hello` handler, the Dockerfile, the health test, and the repo's `.gitlab-ci.yml`.
+The `dream-edge` repo, its Go module, the health/`hello` handler, the Dockerfile, the health test, and the repo's GitHub Actions workflow (`.github/workflows/ci.yml`).

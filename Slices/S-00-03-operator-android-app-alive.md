@@ -18,7 +18,7 @@ The Android app is the next stack we stand up end to end, on its own. It is a Ko
 - **Kotlin + Jetpack Compose hello-world app;** a hello screen.
 - **`assembleDebug` succeeds.**
 - **One JUnit smoke test passes.**
-- **The repo's own minimal `.gitlab-ci.yml`:** build + test on every push (`./gradlew assembleDebug` + test). Build + test only; no gates.
+- **The repo's own minimal GitHub Actions workflow (`.github/workflows/ci.yml`):** build + test on every push (`./gradlew assembleDebug` + test). Build + test only; no gates.
 
 **Out (deferred — and behind which seam):**
 - `dream-contracts` repo + git-submodule wiring → **S-02** (this repo is standalone; no submodule in S-00).
@@ -30,7 +30,7 @@ The Android app is the next stack we stand up end to end, on its own. It is a Ko
 - Gradle build — `settings.gradle.kts`, `build.gradle.kts`, `gradle/libs.versions.toml`, `gradlew`
 - The Compose hello screen
 - The JUnit smoke test
-- `dream-operator-android-app/.gitlab-ci.yml` (build + test)
+- `dream-operator-android-app/.github/workflows/ci.yml` (build + test)
 
 ## Acceptance criteria
 - Given a clean clone, when `./gradlew assembleDebug` runs at the repo root, then it succeeds; and when its JUnit smoke test runs, then it passes.
@@ -45,4 +45,4 @@ The Android app is the next stack we stand up end to end, on its own. It is a Ko
 - AGP / Kotlin / Gradle / JDK / compile-target SDK versions — recorded in this app's version catalog.
 
 ## Converges into
-The `dream-operator-android-app` repo, its Gradle build + wrapper, the hello-world Compose app, the JUnit smoke test, and the repo's `.gitlab-ci.yml`.
+The `dream-operator-android-app` repo, its Gradle build + wrapper, the hello-world Compose app, the JUnit smoke test, and the repo's GitHub Actions workflow (`.github/workflows/ci.yml`).

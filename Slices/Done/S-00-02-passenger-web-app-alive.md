@@ -17,7 +17,7 @@ The web surface is the next stack we stand up end to end, on its own and indepen
 - **React + TS via Vite at the repo root**; PWA shell scaffolding (service-worker wiring minimal/deferred); pinned Node version.
 - **A hello page renders.**
 - **Vitest + React Testing Library smoke test passes.**
-- **The repo's own minimal `.gitlab-ci.yml`:** build + test on every push (npm/Vite build + Vitest). Build + test only; no gates.
+- **The repo's own minimal GitHub Actions workflow (`.github/workflows/ci.yml`):** build + test on every push (npm/Vite build + Vitest). Build + test only; no gates.
 
 **Out (deferred — and behind which seam):**
 - `dream-contracts` repo + git-submodule wiring → **S-02** (this repo is standalone; no submodule in S-00).
@@ -30,7 +30,7 @@ The web surface is the next stack we stand up end to end, on its own and indepen
 - The Vite/TS project + `package.json`
 - The hello page component
 - The Vitest smoke test
-- `dream-passenger-web-app/.gitlab-ci.yml` (build + test)
+- `dream-passenger-web-app/.github/workflows/ci.yml` (build + test)
 
 ## Acceptance criteria
 - Given a clean checkout, when the web build runs, then it produces a bundle and the Vitest smoke test passes.
@@ -45,4 +45,4 @@ The web surface is the next stack we stand up end to end, on its own and indepen
 - Pinned Node version — recorded in the project / toolchain files.
 
 ## Converges into
-The `dream-passenger-web-app` repo, its Vite/TS project, the hello page, the Vitest smoke test, and the repo's `.gitlab-ci.yml`.
+The `dream-passenger-web-app` repo, its Vite/TS project, the hello page, the Vitest smoke test, and the repo's GitHub Actions workflow (`.github/workflows/ci.yml`).

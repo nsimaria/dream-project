@@ -14,12 +14,12 @@ We are starting multi-repo: one repository per product surface/component, plus (
 ## Scope
 **In:**
 - **Five repositories on trunk, created one at a time:** `dream-backend`, `dream-passenger-web-app`, `dream-operator-android-app`, `dream-edge` (the four stacks), then `dream-orchestration` (the cross-repo wrap-up, created last). Each with its own `.gitignore` and `README`. (`Documents` / `Slices` planning content remains where it is — not a code repo concern here.)
-- **Self-contained per-stack builds, each with its own CI:** every stack repo owns its toolchain, its hello-world runtime, its alive test, and its own minimal `.gitlab-ci.yml` (build + test on push) — added in the same subslice that creates the repo, so each repo is independently green the moment it lands. `dream-backend` and `dream-operator-android-app` each own an independent Gradle build + wrapper (no shared umbrella build), `dream-passenger-web-app` uses npm/Vite, `dream-edge` uses the Go toolchain; each pins its own tool versions for reproducibility.
+- **Self-contained per-stack builds, each with its own CI:** every stack repo owns its toolchain, its hello-world runtime, its alive test, and its own minimal GitHub Actions workflow (`.github/workflows/ci.yml`, build + test on push) — added in the same subslice that creates the repo, so each repo is independently green the moment it lands. `dream-backend` and `dream-operator-android-app` each own an independent Gradle build + wrapper (no shared umbrella build), `dream-passenger-web-app` uses npm/Vite, `dream-edge` uses the Go toolchain; each pins its own tool versions for reproducibility.
 - **Backend (Java/Spring Boot):** a single bootable app (not yet decomposed into domain modules) exposing a liveness endpoint (Actuator `/health` or `/hello`); Spring Boot Test smoke test asserts context loads and the endpoint returns 200.
 - **Web (React/TS, Vite PWA shell):** builds; renders a hello page; Vitest + RTL smoke test passes.
 - **Android (Kotlin/Compose):** assembles `:debug`; one JUnit smoke test passes.
 - **Edge (Go):** builds; trivial health/`hello` handler; `go test` passes; container image builds.
-- **`dream-orchestration` repo (created last):** a `Makefile` with `verify` (checks out each of the four now-existing sibling repos at a pinned SHA, builds and tests all four stacks) and the skeleton of `train`; cross-repo scripts; a pinned-SHA manifest; the home for the conformance harness and rung-1 sim (filled in S-02/S-03). Its own `.gitlab-ci.yml` runs `make verify` across the pinned siblings.
+- **`dream-orchestration` repo (created last):** a `Makefile` with `verify` (checks out each of the four now-existing sibling repos at a pinned SHA, builds and tests all four stacks) and the skeleton of `train`; cross-repo scripts; a pinned-SHA manifest; the home for the conformance harness and rung-1 sim (filled in S-02/S-03). Its own GitHub Actions workflow (`.github/workflows/ci.yml`) runs `make verify` across the pinned siblings.
 
 **Out (deferred — and behind which seam):**
 - **`dream-contracts` repo + git-submodule wiring in each consumer** → **S-02** (created when contract content exists; each app repo is fully standalone in S-00, no submodule).
@@ -35,8 +35,8 @@ We are starting multi-repo: one repository per product surface/component, plus (
 - Five repo roots, each with `.gitignore` and `README`
 - `dream-backend` and `dream-operator-android-app`: each its own `settings.gradle.kts`, `build.gradle.kts`, version catalog, and `gradlew` wrapper
 - `dream-passenger-web-app`: `package.json` + Vite/TS project; `dream-edge`: `go.mod` + Dockerfile
-- `.gitlab-ci.yml` in **each** stack repo (build + test), added with the repo
-- `dream-orchestration/Makefile` (`verify` aggregate target; `train` skeleton), its sibling-checkout script + pinned-SHA manifest, and its `.gitlab-ci.yml` (cross-repo `make verify`)
+- GitHub Actions workflow (`.github/workflows/ci.yml`) in **each** stack repo (build + test), added with the repo
+- `dream-orchestration/Makefile` (`verify` aggregate target; `train` skeleton), its sibling-checkout script + pinned-SHA manifest, and its GitHub Actions workflow (`.github/workflows/ci.yml`, cross-repo `make verify`)
 - Per-stack smoke tests in each repo's test path
 
 ## Acceptance criteria
@@ -55,12 +55,12 @@ We are starting multi-repo: one repository per product surface/component, plus (
 
 ## Open decisions
 - Pinned runtime versions (JDK, Node, Go, Android SDK/compile target) — record in each stack repo's own toolchain / version-catalog files; thin ADR only if contested.
-- Repo host / group structure (one GitLab group, five projects in S-00) — GitLab assumed (MVP Technical Choices: GitLab CI).
+- Repo host / org structure (one GitHub org, five repos in S-00) — GitHub assumed (MVP Technical Choices: GitHub Actions).
 - Cloud provider/region is **not** decided here (S-01 owns the infra skeleton); CI uses a generic runner.
 - How `make verify` obtains siblings on a fresh CI runner (scripted clone at pinned SHA vs submodule-of-siblings) — recorded in the dream-orchestration repo.
 
 ## Converges into
-The five repositories and their layouts, the per-stack builds each with its own CI (the backend and Android Gradle builds + wrappers, the web npm/Vite project, the edge Go module + Dockerfile), the four per-stack smoke tests and per-repo `.gitlab-ci.yml` files, and — created last — the `dream-orchestration` `Makefile` + cross-repo scripts + pinned-SHA manifest and its `.gitlab-ci.yml`.
+The five repositories and their layouts, the per-stack builds each with its own CI (the backend and Android Gradle builds + wrappers, the web npm/Vite project, the edge Go module + Dockerfile), the four per-stack smoke tests and per-repo GitHub Actions workflows (`.github/workflows/ci.yml`), and — created last — the `dream-orchestration` `Makefile` + cross-repo scripts + pinned-SHA manifest and its GitHub Actions workflow (`.github/workflows/ci.yml`).
 
 ## Breakdown
 Delivered as subslices, one per repo, built one at a time and each independently green before the next:

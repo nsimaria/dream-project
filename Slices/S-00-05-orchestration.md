@@ -17,7 +17,7 @@ The four stacks build and test individually in their own repos on their own tool
 - **`Makefile` `verify` target:** checks out each of the four sibling repos at its **pinned SHA** (via a sibling-checkout script + pinned-SHA manifest in this repo), then invokes each stack's own build + test — the backend Gradle build (`./gradlew build`), the web npm/Vite build + Vitest, the Android Gradle build (`./gradlew assembleDebug` + test), and the edge `go build` + `go test ./...`.
 - **`Makefile` `train` skeleton** wired to the same checkout mechanism (full bring-up filled in S-03; here it resolves siblings and is a no-op/placeholder for the sim).
 - **Sibling-checkout script + pinned-SHA manifest** that knows the four repos and their pinned SHAs.
-- **The repo's own `.gitlab-ci.yml`:** runs `make verify` across the pinned siblings on push. Build + test only; no gates.
+- **The repo's own GitHub Actions workflow (`.github/workflows/ci.yml`):** runs `make verify` across the pinned siblings on push. Build + test only; no gates.
 
 **Out (deferred — and behind which seam):**
 - `dream-contracts` repo + git-submodule wiring → **S-02**.
@@ -31,7 +31,7 @@ The four stacks build and test individually in their own repos on their own tool
 - `dream-orchestration` repo root `.gitignore`, `README.md`
 - `dream-orchestration/Makefile` (`verify` target; `train` skeleton)
 - The sibling-checkout script + pinned-SHA manifest
-- `dream-orchestration/.gitlab-ci.yml` (cross-repo `make verify`)
+- `dream-orchestration/.github/workflows/ci.yml` (cross-repo `make verify`)
 
 ## Acceptance criteria
 - Given clean clones, when `make verify` runs in the dream-orchestration repo, then it checks out each of the four siblings at its pinned SHA and all four stacks build and their smoke tests pass.
@@ -48,4 +48,4 @@ The four stacks build and test individually in their own repos on their own tool
 - Where the pinned-SHA manifest lives (`Makefile` vars vs a separate file) — recorded in the dream-orchestration repo.
 
 ## Converges into
-The `dream-orchestration` repo, its `Makefile` (`verify` target + `train` skeleton), the sibling-checkout script + pinned-SHA manifest, and its `.gitlab-ci.yml`.
+The `dream-orchestration` repo, its `Makefile` (`verify` target + `train` skeleton), the sibling-checkout script + pinned-SHA manifest, and its GitHub Actions workflow (`.github/workflows/ci.yml`).
