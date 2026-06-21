@@ -169,6 +169,7 @@ graph TD
 
     %% Edge
     PMOB -->|cabin / facility controls<br/>Passenger realm| TEG
+    OPAPP -->|IoT control · ticket validation<br/>offline ops sync · Operator realm| TEG
     TEG --> IOT
     TEG <-->|resilient sync| BUS
     TEG -->|TCMS diagnostics handover| FLEET
@@ -297,7 +298,8 @@ One subsection per product surface — the distinct digital products we build (p
 - Passenger manifest and seat/berth map
 - Ticket validation (QR / NFC)
 - Task lists: cleaning schedules, turnover checklists
-- Meal service management: order queue, delivery status
+- Meal service management: order queue (fed by passenger orders, §6.3 Hospitality), delivery status — works offline against the edge gateway, reconciles to the Hospitality service on uplink
+- Cabin & facility device control (Operator realm, broader scope than passengers): set up or override berth/suite environment, read operational device state (door, cleaning completion, supply levels) — directly against the Train Edge Gateway (§6.4)
 - Incident and fault reporting; messaging with the operations centre
 - **Critical requirement:** full offline functionality. State syncs to the Train Edge Gateway when possible, and to the cloud when the train has uplink.
 
@@ -317,6 +319,14 @@ The Backend Services own the following domains.
 - **Pricing and yield engine**
 - **Crew and staff assignment**
 - **Hospitality & meals:** order capture, galley/kitchen queue, preparation and delivery status for in-trip food and drink — surfaced through the passenger and operator apps (§6.1–6.2)
+
+**Hospitality order flow — online, in-trip offline, pre-trip.** A passenger places hospitality orders (a meal now, breakfast for tomorrow) from their app; the operator app shows them as a fulfilment queue. Orders reach the fulfiller by one of three paths, but the **Hospitality service stays the source of truth** in all three (D-01) — the edge never owns order state, it only buffers it.
+
+- *Online:* passenger order → Passenger BFF → Hospitality service → event → operator app queue. The normal path when the train has uplink.
+- *In-trip, offline:* with no uplink, an in-trip order is brokered **locally by the Train Edge Gateway** so the passenger and on-board operator apps stay in sync regardless of connectivity, then reconciled into the Hospitality service — for persistence, payment, and loyalty — on reconnect, under the same conflict model as offline ticket validation (§7, HIGH RISK).
+- *Pre-trip:* an order placed before boarding goes cloud-side to the Hospitality service normally, then is **pre-loaded onto the edge gateway before departure**, the same way manifest and tickets are (§6.4).
+
+_Privacy boundary: meal orders persist — they are payment and loyalty events — distinct from facility-occupancy state, which is real-time only and never persisted (§6.4, D-17)._
 
 > **Decision D-11 (Resolved, Jun 2026):** Eventual consistency is the default *across* domains; **strong consistency is required within the payments and ticketing services.**
 > _Rationale:_ availability and offline tolerance everywhere except where double-booking or double-charging is unacceptable. _Implication:_ ticketing and payment paths cannot quietly relax to eventual consistency for performance — that boundary is deliberate. _Mechanism:_ each owns a strongly-consistent transactional store (D-01); strong consistency is a property *inside* a service, not across the bus. Multi-service flows (e.g. split payment, §5.2) coordinate via sagas, not distributed transactions (D-02).
@@ -375,13 +385,15 @@ Each train runs a **Train Edge Gateway** — a hardened local compute node (smal
 - Serves the passenger Wi-Fi portal and proxies real-time requests when uplink is available
 - Maintains a local event log that syncs upstream when connected (4G, 5G, or satellite)
 - Communicates with the Backend Services via a **resilient sync protocol** — not simple REST; conflict resolution is required _(protocol and conflict-resolution model still open — see §7, flagged HIGH RISK)_
-- **Connectivity:** 4G/5G primary, satellite fallback (future phase), local mesh between carriages where applicable; all critical state (manifest, tickets) pre-loaded before departure
+- **Two client realms reach the gateway directly:** the passenger app for cabin/facility controls (Passenger realm) and the operator app for IoT control, offline ticket validation, and operational sync (Operator realm) — each validated per-realm, including offline (D-06)
+- **Store-and-forward for in-trip business orders:** brokers on-board hospitality orders locally between the passenger and operator apps when there is no uplink, reconciling them into the Hospitality service on reconnect (§6.3). The edge is a buffer, not a source of truth — order authority stays with the owning service (D-01)
+- **Connectivity:** 4G/5G primary, satellite fallback (future phase), local mesh between carriages where applicable; all critical state (manifest, tickets, pre-trip hospitality orders) pre-loaded before departure
 
 **IoT abstraction layer.** A **Device Shadow** model on the edge gateway — each device has a shadow document with reported (actual) and desired (target) state; the gateway reconciles. Works offline natively; a pluggable adapter interface keeps business logic out of vendor-specific code. **Hardware vendor selection is a future phase.** Facility state (toilet occupied, lounge availability) is **real-time only, never persisted** — an explicit passenger-privacy boundary.
 
 IoT surface by category:
 - **Facility state** (read, broadcast): toilet occupied/free, lounge occupancy, dining-car availability
-- **Environment control** (read/write, scoped to berth/suite): lighting, temperature, berth privacy lock
+- **Environment control** (read/write, scoped to berth/suite): lighting, temperature, berth privacy lock — passengers control their own berth/suite; operators (host/conductor) act across berths/suites and may override (Operator realm, §6.2)
 - **Operational state** (read, staff/ops): door state, cleaning completion, supply inventory
 - **Onboard diagnostics (TCMS):** train fault/condition data, received via the vendor handover (D-15) and fed to maintenance — distinct from the IoT layer
 - **IM running information:** delay/forecast/disruption, sourced from the rail-infrastructure adapter (TAF/TAP TSI via TIS), not the IoT layer and not from onboard signalling
