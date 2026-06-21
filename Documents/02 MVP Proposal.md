@@ -25,7 +25,7 @@ The cost is real — this MVP is bigger than a sell-only one. The mitigation is 
 - **One modular monolith** (D-01's blessed starting shape). Postgres, one schema per domain, four modules: `trips`, `inventory`, `orders/ticketing`, `payments`. Hard module boundaries enforced in CI — no cross-schema queries, ever. The module map *is* the future service map.
 - **No Kafka/NATS.** Transactional outbox (D-02) + Postgres-backed relay to idempotent in-process consumers is a durable, at-least-once bus. D-01 fixes the pattern, not the broker.
 - **No separate BFF layer.** The monolith's API is the Passenger BFF. Kept invariant (D-05/D-06): external tokens validate and terminate at the API edge; only principal + realm claims travel inward.
-- **One IdP product, realm-per-audience from day 1** (Keycloak realms map onto D-05). Passenger realm live (email/password + Google/Apple). **Operator realm now also live, minimally** — the ride needs a conductor (§3.3). eIDAS, HR provisioning flows, full MFA policy: later.
+- **One IdP product, realm-per-audience from day 1** (Keycloak realms map onto D-05). Passenger realm live (email/password + Google/Apple). **Operator realm now also live, minimally** — the ride needs a conductor (§3.3). The operator app caches a **trip-duration session on the device** (token + operator-realm JWKS) so a conductor can authenticate and validate fully offline (§3.3). eIDAS, HR provisioning flows, full MFA policy: later.
 - **PSP in test mode behind the thin abstraction.** Nobody pays real money to ride a model train; merchant onboarding and real settlement are deferred to commercial launch. The integration is real, the money is not. Single currency (route is all-EUR — see pushbacks, §5).
 - **Strong consistency where D-11 demands it** — inventory holds and ticketing as Postgres transactions inside one module. Drawn now because the boundary is brutal to retrofit.
 - **Static fare table.** Yield engine later, behind the pricing interface.
@@ -46,9 +46,20 @@ The cost is real — this MVP is bigger than a sell-only one. The mitigation is 
 
 The ride needs a conductor. Smallest possible cut of the Operator App (D-10: Android, corporate device):
 
-- Ticket validation (QR) against the edge gateway — **works offline**, syncs when connected.
+- Ticket validation (QR), **edge-first** with store-and-forward — see the connectivity matrix below.
 - Mark cleaning task complete → ops/admin view updates (priority scenario 3).
 - Nothing else. Rosters, messaging, meal queues, incident reporting: later.
+
+**Ticket validation is edge-first and degrades across four connectivity states.** On board, the app talks to the **edge first whenever it is reachable**, falling back to the backend only when it is not; every validation records an event that reconciles, so a ticket can't be quietly used twice. Routing the on-board fleet through the single edge node also keeps all on-board devices consistent with each other in real time. Precedence: **edge → backend → device**.
+
+| Edge | Internet | Validates against | Background sync |
+|---|---|---|---|
+| up | up | Edge (primary) | edge → backend continuously |
+| up | down | Edge (primary) | edge → backend when uplink returns |
+| down | up | Backend (fallback) | backend → edge once the edge reconnects |
+| down | down | Device (pre-loaded manifest) | device → edge (or backend), whichever returns first |
+
+Anything not yet synced to the backend is **optimistic**: acceptance is local and the source of truth catches up, so double-scan detection is the conflict case the settled model (§3.2) must handle. This is the precise sense in which ticketing's strong consistency (D-11) holds *at the backend* while on-board validation is accept-and-reconcile. The third row — backend-direct, then **back-sync to the edge** — is first-class, not an edge case: it is how an off-board or edge-down validation reaches the on-board queue. Nor is the fourth row a degraded afterthought: the operator app **pre-downloads the full manifest and validation rules at trip start**, so the device is a self-sufficient offline validator — the availability floor that keeps a conductor working with neither edge nor cloud. (It also caches a trip-duration operator session for offline auth, §3.1.)
 
 This is deliberately the first consumer of the sync foundation — the operator app is where a wrong conflict model would hurt most, so it rides the settled design from its first line of code.
 
@@ -61,7 +72,7 @@ This is deliberately the first consumer of the sync foundation — the operator 
 | Loyalty (D-14) | Greenfield, no coupling | New module; only rule today: nobody stores a points balance |
 | Data Warehouse & analytics | No volume | Read replica + Metabase, then event-driven ingestion |
 | IM adapters, TIS, TAF/TAP (D-16) | No trains on real track | Adapter-per-IM behind the unified operational-data model |
-| Split payment / hospitality flow (§5.2) | No galley; meal *ordering* can be faked later against the same order module | Saga over orders + payments |
+| Split payment / hospitality flow (§5.2) | No galley; meal *ordering* can be faked later against the same order module | Saga over orders + payments, **plus the edge store-and-forward broker for in-trip offline orders** (§6.3–6.4 target) — rides the same sync/conflict seam the operator app already exercises |
 | Real PSP settlement / merchant onboarding | No real money in the Lab | Flip from test mode at commercial launch |
 | Full cabin prototype (rung 4) | Berth slice covers the control loop | Built when demo/UX value justifies it |
 | Satellite uplink, mesh | Lab has Wi-Fi; dropout is *injected*, which is better for testing | Connectivity strategy, future phase |
@@ -90,7 +101,7 @@ The two spines run in parallel; the sync decision gates hardware, not the other 
 | **M1a** (≈ Q1–Q2) | Commercial spine: monolith, booking slice, PSP test mode, admin, paths gate | A stranger books a (test) trip and receives a ticket |
 | **M1b** (parallel, ≈ Q1–Q2) | Rung 2 software fleet twin; dropout/fault injection; **sync protocol + conflict model decided** | Decision record written; twin passes conformance + scenario 4 |
 | **M2** (≈ Q2–Q3) | Edge gateway on settled design; device-shadow adapter; rig + berth slice hardware; minimal operator app | Rig passes the conformance suite |
-| **M3** (≈ Q3–Q4) | Integration: the full Lab ride | **The demo:** book on the web, scan the QR at the rig, watch the trip advance scheduled → en route → completed, watch toilet status flip live, set the berth light from the app, pull the plug mid-trip, reconcile on reconnect |
+| **M3** (≈ Q3–Q4) | Integration: the full Lab ride | **The demo:** book on the web, scan the QR at the rig, watch the trip advance scheduled → en route → completed, watch toilet status flip live, set the berth light from the app, pull the plug mid-trip and reconcile on reconnect — validating a ticket in each of the four connectivity states (both, edge-only, backend-only, fully offline) |
 
 Headcount: roughly six to eight engineers across both spines (edge/IoT/firmware skewed on the offline side). The commercial spine alone is a four-to-six-engineer, one-to-two-quarter effort; the ride is what the increment buys.
 

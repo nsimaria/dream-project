@@ -217,7 +217,7 @@ These concerns span every surface. Each carries a made decision, folded in here 
 Three completely separate Identity Providers with hard domain separation. **No cross-realm token acceptance under any circumstance.**
 
 - **Passenger IdP** — passenger app (web + mobile) only. Login via email/password, Google, Apple, and eIDAS-compliant government identity schemes (iDIN, BankID, FranceConnect, UK Verify). A proudly European identity posture — government ID support is a brand differentiator. GDPR subject rights (export, deletion) are first-class. MFA offered, not mandated.
-- **Operator IdP** — all staff-facing apps. Email login, **MFA mandatory**. Accounts provisioned/deprovisioned by HR ops. Tokens cached on the Train Edge Gateway, valid for full trip duration without a live IdP connection. Roles: conductor, cleaner, controller, catering, on-board host.
+- **Operator IdP** — all staff-facing apps. Email login, **MFA mandatory**. Accounts provisioned/deprovisioned by HR ops. Tokens cached on the Train Edge Gateway, valid for full trip duration without a live IdP connection. The Operator App **also caches its own trip-duration session on the device** (token + operator-realm JWKS), so a conductor can authenticate and validate tickets when the device is offline from both the cloud and the edge (§6.2); MFA is satisfied at shift start, then offline for the trip. Roles: conductor, cleaner, controller, catering, on-board host.
 - **Company IdP** — corporate SaaS only (Google Workspace, Slack) plus **read-only, role-scoped** access to the Data Warehouse. Does **not** connect to any operational surface. Implemented on whatever the client runs corporately (Google Workspace Identity or Azure AD).
 
 **Authentication topology.** The three realms govern *where users authenticate*; they are kept isolated by terminating every external IdP token at the edge, so that no Backend Service ever consumes more than one issuer.
@@ -296,9 +296,9 @@ One subsection per product surface — the distinct digital products we build (p
 **Operator App** (conductors, controllers, cleaners, catering, on-board hosts; **Android** phone + tablet):
 - Role-based dashboards (a conductor sees different things to a cleaner)
 - Passenger manifest and seat/berth map
-- Ticket validation (QR / NFC)
+- Ticket validation (QR / NFC) — edge-first, reconciled (§6.4). The app **pre-loads the full trip manifest and validation rules to the device** at trip start, so once downloaded it validates any ticket for that trip with no cloud — and no edge — dependency. The on-device manifest is the **availability floor** (validation is never blocked by connectivity); the edge, when reachable, still coordinates scans for real-time double-scan prevention.
 - Task lists: cleaning schedules, turnover checklists
-- Meal service management: order queue (fed by passenger orders, §6.3 Hospitality), delivery status — works offline against the edge gateway, reconciles to the Hospitality service on uplink
+- Meal service management: order queue (fed by passenger orders, §6.3 Hospitality), delivery status — served by the edge first, reconciled to the Hospitality service in the background (§6.4)
 - Cabin & facility device control (Operator realm, broader scope than passengers): set up or override berth/suite environment, read operational device state (door, cleaning completion, supply levels) — directly against the Train Edge Gateway (§6.4)
 - Incident and fault reporting; messaging with the operations centre
 - **Critical requirement:** full offline functionality. State syncs to the Train Edge Gateway when possible, and to the cloud when the train has uplink.
@@ -320,11 +320,11 @@ The Backend Services own the following domains.
 - **Crew and staff assignment**
 - **Hospitality & meals:** order capture, galley/kitchen queue, preparation and delivery status for in-trip food and drink — surfaced through the passenger and operator apps (§6.1–6.2)
 
-**Hospitality order flow — online, in-trip offline, pre-trip.** A passenger places hospitality orders (a meal now, breakfast for tomorrow) from their app; the operator app shows them as a fulfilment queue. Orders reach the fulfiller by one of three paths, but the **Hospitality service stays the source of truth** in all three (D-01) — the edge never owns order state, it only buffers it.
+**Hospitality order flow — edge-first.** A passenger places hospitality orders (a meal now, breakfast for tomorrow) from their app; the operator app shows them as a fulfilment queue. Routing follows the edge-first precedence (§6.4), but the **Hospitality service stays the source of truth** throughout (D-01) — the edge never owns order state, it only buffers it.
 
-- *Online:* passenger order → Passenger BFF → Hospitality service → event → operator app queue. The normal path when the train has uplink.
-- *In-trip, offline:* with no uplink, an in-trip order is brokered **locally by the Train Edge Gateway** so the passenger and on-board operator apps stay in sync regardless of connectivity, then reconciled into the Hospitality service — for persistence, payment, and loyalty — on reconnect, under the same conflict model as offline ticket validation (§7, HIGH RISK).
-- *Pre-trip:* an order placed before boarding goes cloud-side to the Hospitality service normally, then is **pre-loaded onto the edge gateway before departure**, the same way manifest and tickets are (§6.4).
+- *In-trip (edge reachable — the normal on-board path):* order → **Train Edge Gateway** (primary) → brokered locally to the operator app, so passenger and crew stay in sync whether or not the train has uplink; the edge syncs the order to the Hospitality service in the background — for persistence, payment, and loyalty — under the §7 conflict model (HIGH RISK).
+- *Edge unreachable, backend reachable:* order → Hospitality service directly (fallback); the service **back-syncs it to the edge once the edge reconnects**, so the on-board queue catches up.
+- *Pre-trip (off-board):* order → Hospitality service normally, then **pre-loaded onto the edge gateway before departure**, the same way manifest and tickets are (§6.4).
 
 _Privacy boundary: meal orders persist — they are payment and loyalty events — distinct from facility-occupancy state, which is real-time only and never persisted (§6.4, D-17)._
 
@@ -385,9 +385,11 @@ Each train runs a **Train Edge Gateway** — a hardened local compute node (smal
 - Serves the passenger Wi-Fi portal and proxies real-time requests when uplink is available
 - Maintains a local event log that syncs upstream when connected (4G, 5G, or satellite)
 - Communicates with the Backend Services via a **resilient sync protocol** — not simple REST; conflict resolution is required _(protocol and conflict-resolution model still open — see §7, flagged HIGH RISK)_
-- **Two client realms reach the gateway directly:** the passenger app for cabin/facility controls (Passenger realm) and the operator app for IoT control, offline ticket validation, and operational sync (Operator realm) — each validated per-realm, including offline (D-06)
-- **Store-and-forward for in-trip business orders:** brokers on-board hospitality orders locally between the passenger and operator apps when there is no uplink, reconciling them into the Hospitality service on reconnect (§6.3). The edge is a buffer, not a source of truth — order authority stays with the owning service (D-01)
+- **Two client realms reach the gateway directly:** the passenger app for cabin/facility controls (Passenger realm) and the operator app for ticket validation, IoT control, and operational sync (Operator realm) — each validated per-realm, including offline (D-06)
+- **Store-and-forward for on-board operations:** brokers on-board operations locally — ticket validation, in-trip hospitality orders, operational state — between the passenger and operator apps, reconciling them into the owning Backend service in the background. The edge is a buffer, not a source of truth — domain authority stays with the owning service (D-01)
 - **Connectivity:** 4G/5G primary, satellite fallback (future phase), local mesh between carriages where applicable; all critical state (manifest, tickets, pre-trip hospitality orders) pre-loaded before departure
+
+**Connectivity precedence — edge-first.** For any capability the edge serves — cabin/facility control, on-board ticket validation, manifest and operational state, in-trip hospitality orders — on-board apps talk to the **edge first whenever it is reachable**, and fall back to the Backend Services only when the edge is not. The edge syncs to the backend in the background; conversely, when an app reached the backend directly because the edge was down, the backend **back-syncs to the edge once the edge reconnects**, so the two never stay divergent. Cloud-only capabilities (search, booking, payment, pricing, loyalty) always use the backend — the edge has no role there. Precedence is therefore **edge → backend → on-device local**, with the Backend Services remaining the source of truth (D-01) and the strong-consistency anchor for ticketing and payments (D-11); on-board operation while partitioned from the backend is optimistic and reconciled (§7). For ticket validation specifically, the operator device holds its own pre-loaded manifest (§6.2), so **on-device local is a designed availability floor** — the app validates with neither edge nor cloud — not a degraded last resort; the edge is still preferred when reachable, for real-time cross-device coordination.
 
 **IoT abstraction layer.** A **Device Shadow** model on the edge gateway — each device has a shadow document with reported (actual) and desired (target) state; the gateway reconciles. Works offline natively; a pluggable adapter interface keeps business logic out of vendor-specific code. **Hardware vendor selection is a future phase.** Facility state (toilet occupied, lounge availability) is **real-time only, never persisted** — an explicit passenger-privacy boundary.
 
