@@ -22,6 +22,7 @@ When the walking skeleton crosses realms — a passenger books, an operator vali
 - eIDAS / government-ID schemes, HR provisioning, full MFA policy.
 - Company realm + read-only DW boundary (DW is cut in the MVP).
 - The full passenger-realm **offline-validation** story and token lifetimes (open in D-06 — ADR).
+- Operator **device-cached** trip-duration session for offline auth on the device itself (token + operator-realm JWKS) — same cached-JWKS mechanism as the edge path, device-side → operator-app slice (M2). This slice proves the edge-side path; the device-side rides the same design (§5.1, §6.2).
 
 ## Seams & contracts
 - `dream-infra` repo: `keycloak/*-realm.json` (realm exports)
@@ -41,6 +42,7 @@ When the walking skeleton crosses realms — a passenger books, an operator vali
 
 ## Open decisions
 - Passenger-realm offline-validation mechanism + token lifetimes — ADR needed (D-06 names this open; the edge offline-validation story constrains lifetimes).
+- Operator token lifetime must cover a **full trip for device-offline validation**, not just edge-offline (§5.1, §6.2, D-06) — folded into the same token-lifetime ADR.
 
 ## Converges into
 The Keycloak realm exports, the resource-server/token-exchange config, the realm-isolation test.
