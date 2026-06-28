@@ -65,7 +65,7 @@ The platform is composed of eight product surfaces plus on-board edge compute, c
 | Passenger Web App | Consumers | Booking + core trip experience |
 | Passenger Mobile Apps (iOS/Android) | Consumers | Facilities, cabin controls, push. Repeat purchases: booking and loyalty. |
 | Distribution & Retail API | Third-party retailers (OTAs, rail retailers) | Outbound sales — exposes booking + inventory to external channels (OSDM) |
-| Operations Management Web App | Ops, planners, CS | Full trip lifecycle management |
+| Operations Management Web App | Ops, planners, CS | Full trip lifecycle management; revenue management — demand forecasting, dynamic pricing, inventory/capacity control |
 | Operator App (Android, phone/tablet) | On-board & ground staff | Role-based on-board operations |
 | Backend Services | (no UI) | Domain-owned business logic & data |
 | Data Warehouse & Analytics | Execs, commercial, data | Reporting & forecasting |
@@ -105,7 +105,10 @@ graph TD
 
     %% Backend
     subgraph BE[Backend Services — domain-owned, database-per-service, D-01]
-        TRIP[Trip lifecycle ·<br/>Inventory · Pricing]
+        TRIP[Trip lifecycle]
+        INV[Inventory<br/>capacity & holds]
+        FCAST[Demand Forecasting]
+        PRICE[Dynamic Pricing]
         TICKET[Ticketing<br/>strong consistency]
         PAY[Payments<br/>strong consistency]
         PATH[Path & Slot<br/>gates scheduling]
@@ -149,12 +152,15 @@ graph TD
     OTA --> DIST --> DBFF
 
     %% BFF -> Backend (token exchange to one internal issuer)
-    PBFF --> TRIP & TICKET & PAY & LOY & HOSP
-    OBFF --> TRIP & PATH & FLEET & HOSP & TICKET
-    DBFF --> TRIP & TICKET
+    PBFF --> TRIP & INV & PRICE & TICKET & PAY & LOY & HOSP
+    OBFF --> TRIP & INV & PRICE & FCAST & PATH & FLEET & HOSP & TICKET
+    DBFF --> TRIP & INV & PRICE & TICKET
 
     %% Backend <-> bus
     TRIP <--> BUS
+    INV <--> BUS
+    FCAST <--> BUS
+    PRICE <--> BUS
     TICKET <--> BUS
     PAY <--> BUS
     PATH <--> BUS
@@ -162,6 +168,10 @@ graph TD
     LOY <--> BUS
     HOSP <--> BUS
     HUB <--> BUS
+
+    %% Revenue management pipeline
+    FCAST -->|forecast| PRICE
+    INV -->|remaining capacity| PRICE
 
     %% Integration hub -> external
     HUB <-->|read-mostly running info,<br/>carrier obligations| IM
@@ -285,9 +295,10 @@ One subsection per product surface — the distinct digital products we build (p
 
 ### 6.2 Operations & Crew
 
-**Operations Management Web App** (ops managers, fleet/trip planners, customer service):
+**Operations Management Web App** (ops managers, fleet/trip planners, commercial/revenue, customer service):
 - Pre-trip: schedule management, resource assignment, staff rostering
 - Path & slot management: held-path registry and validity, with PCS / IM-portal workflow status; path gating surfaced to the trip scheduler (see Backend Services, §6.3)
+- Revenue management: review demand forecasts and apply overrides; manage fares, price points and dynamic-pricing rules; allocate inventory/capacity (booking limits, release of held capacity); monitor yield across the day and night products (backed by the forecasting/pricing/inventory split — §6.3, D-21)
 - During trip: live train tracking, incident management, real-time passenger manifest, in-trip retail services (e.g. an on-board fidget-toy shop)
 - Post-trip: delay logging, service-quality reports, feedback aggregation
 - Train configuration per trip type (day vs night layout)
@@ -312,11 +323,12 @@ The Backend Services are the authoritative, **no-UI business-logic layer** behin
 
 The Backend Services own the following domains.
 
-**Trip lifecycle, inventory & pricing.**
+**Trip lifecycle, inventory & revenue management.**
 
 - **Trip lifecycle engine:** creation, scheduling, boarding, completion, cancellation
-- **Inventory management:** seats, berths, suites, meal slots, linen allocation
-- **Pricing and yield engine**
+- **Inventory & capacity management:** seats, berths, suites, meal slots, linen allocation; strongly-consistent holds (D-11)
+- **Demand forecasting:** model-driven demand and pickup forecasts per service, leg, and accommodation type, feeding pricing and scheduling
+- **Dynamic pricing:** network-aware price points and booking-limit controls, driven by the demand forecast and remaining capacity, exposed behind a stable pricing interface
 - **Crew and staff assignment**
 - **Hospitality & meals:** order capture, galley/kitchen queue, preparation and delivery status for in-trip food and drink — surfaced through the passenger and operator apps (§6.1–6.2)
 
@@ -330,6 +342,9 @@ _Privacy boundary: meal orders persist — they are payment and loyalty events �
 
 > **Decision D-11 (Resolved, Jun 2026):** Eventual consistency is the default *across* domains; **strong consistency is required within the payments and ticketing services.**
 > _Rationale:_ availability and offline tolerance everywhere except where double-booking or double-charging is unacceptable. _Implication:_ ticketing and payment paths cannot quietly relax to eventual consistency for performance — that boundary is deliberate. _Mechanism:_ each owns a strongly-consistent transactional store (D-01); strong consistency is a property *inside* a service, not across the bus. Multi-service flows (e.g. split payment, §5.2) coordinate via sagas, not distributed transactions (D-02).
+
+> **Decision D-21 (Resolved, Jun 2026):** The trip/inventory/pricing domain is decomposed so that **revenue management is three cooperating services — Demand Forecasting, Dynamic Pricing, and Inventory (capacity & holds)** — each the source of truth for its own data (D-01) and distinct from the Trip lifecycle service.
+> _Rationale:_ the three have different workloads and consistency needs and should not share one store or cadence. Inventory holds are a strongly-consistent hot path (D-11); demand forecasting is an analytical, model-driven, eventually-consistent workload; dynamic pricing is a decisioning layer that consumes the forecast and remaining capacity to set price points and booking limits. Splitting them lets each scale and evolve on its own terms and keeps a model-training workload off the booking hot path. _Pipeline:_ Demand Forecasting → Dynamic Pricing ← Inventory; pricing reads remaining capacity from inventory and the latest forecast, and publishes price/limit decisions on the bus (D-01/D-02). _Boundary:_ this is the **revenue-management** decomposition — forward-looking optimisation of what to sell and at what price — distinct from the open **revenue/finance** settlement domain (§7), which is post-sale accounting (commission, VAT, reconciliation). _MVP:_ these collapse to a single inventory module plus a static fare table behind the pricing interface (MVP §3.1); the split is the target shape, restored behind that interface as the yield engine arrives.
 
 **Path & slot management.** A path (slot) is the fundamental operating right — without one, a trip cannot run. Paths are therefore a first-class domain whose state **hard-gates trip scheduling**, in the same way maintenance and certification do (D-13).
 
