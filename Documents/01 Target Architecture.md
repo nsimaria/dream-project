@@ -191,6 +191,7 @@ graph TD
     %% Analytics
     BUS ==>|event-driven ingestion| DW
     CIDP -->|read-only, role-scoped| DW
+    DW -.->|feature / history| FCAST
 ```
 
 ### 4.1 Communication & integration patterns
@@ -422,8 +423,9 @@ IoT surface by category:
 
 For executives, commercial team, operations analysts, and data scientists.
 
-- **Capabilities:** operational KPIs (punctuality, occupancy, revenue per seat/berth); hospitality analytics (meal uptake, facility-usage patterns); passenger behaviour and booking funnels; fleet health and maintenance patterns; demand forecasting for pricing and scheduling.
+- **Capabilities:** operational KPIs (punctuality, occupancy, revenue per seat/berth); hospitality analytics (meal uptake, facility-usage patterns); passenger behaviour and booking funnels; fleet health and maintenance patterns. **Human-facing reporting and BI** — not operational decisioning.
 - **Architecture:** event-driven ingestion from the operational event bus → staging → modelled data mart → BI layer (Metabase, Superset, or Looker). **Separate from OLTP; no direct DB queries against production.** Access is via the Company IdP, read-only and role-scoped (see §5.1).
+- **Relationship to demand forecasting:** demand forecasting is an **operational backend service** (§6.3, D-21), not an analytics deliverable — it produces forecasts that Dynamic Pricing consumes in the booking path. The warehouse is its **feature/history source** (it reads modelled booking-curve, pickup, and occupancy history to train and evaluate models), and forecast accuracy is reported here, but the warehouse does not own or serve the forecast itself.
 
 ---
 

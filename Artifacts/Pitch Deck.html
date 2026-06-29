@@ -284,7 +284,7 @@
           <div class="moment co"><span class="who">Company</span><div>The very same availability also feeds outside sellers like Trainline and Omio — so people can discover the train wherever they already shop, all drawing on <b>one single source of truth</b> for what's for sale.</div></div>
           <details class="hood">
             <summary><span class="gear">⚙</span> Behind the scenes <span class="chev">›</span></summary>
-            <div class="body">There's <b>one master record</b> of every seat, berth and price — so the number you see is never a stale guess, and you're never shown something that's already gone. Whether you book on our own site or through a third party, everyone reads from that same record, so the product never looks different in two places. <span class="term">(In the architecture: shared inventory &amp; pricing behind an open industry standard, OSDM.)</span></div>
+            <div class="body">There's <b>one master record</b> of every seat and berth — so you're never shown something that's already gone, and the number you see is never a stale guess. The price isn't a fixed entry in a table: a <b>dynamic pricing engine</b> sets each fare live from real demand and what's still free, so it reflects the moment. Whether you book on our own site or through a third party, everyone reads from that same live record, so the product never looks different in two places. <span class="term">(In the architecture: shared inventory and a dynamic pricing engine, opened to partners through an open industry standard, OSDM.)</span></div>
           </details>
         </div>
       </div>
@@ -597,11 +597,18 @@
     <div class="inner">
       <div class="slabel"><span class="sn">9</span> Inside the platform <span class="where">· the secure core, opened up</span></div>
       <h2 class="stitle">Inside the platform</h2>
-      <p class="bpsub">The same single block from the last slide, opened up. Every app enters through its own checked door, then talks to a set of focused services — each owning its own data — all connected by one durable spine. Reporting lives walled off to the side.</p>
+      <p class="bpsub">The same single block from the last slide, opened up. Each audience — passengers, operators, partners, corporate — reaches its own surface, which enters through its own checked door, then talks to a set of focused services — each owning its own data — all connected by one durable spine. Reporting lives walled off to the side.</p>
       <div class="diagram tall">
-        <svg viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Detailed diagram: the platform broken into BFF entry layer, eight domain services, event bus, train edge, and a walled-off data warehouse">
+        <svg viewBox="0 -70 960 610" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Detailed diagram: four audience pills — passengers, operators, partners, corporate — linked down to their product surfaces, then a BFF entry layer, ten domain services, event bus, train edge, and a walled-off data warehouse">
 
           <!-- connection lines (under boxes) -->
+          <!-- audiences -> surfaces -->
+          <path class="dg-edge" d="M143 -22 L68 12"/>
+          <path class="dg-edge" d="M143 -22 L218 12"/>
+          <path class="dg-edge" d="M443 -22 L368 12"/>
+          <path class="dg-edge" d="M443 -22 L518 12"/>
+          <path class="dg-edge" d="M668 -22 L668 12"/>
+          <path class="dg-edge" d="M858 -22 L858 104"/>
           <!-- surfaces -> BFFs -->
           <path class="dg-edge" d="M68 58 L140 120"/>
           <path class="dg-edge" d="M218 58 L140 120"/>
@@ -613,10 +620,11 @@
           <path class="dg-edge" d="M380 160 L380 196"/>
           <path class="dg-edge" d="M620 160 L620 196"/>
           <!-- services -> bus -->
-          <path class="dg-edge" d="M123 250 L123 346"/>
-          <path class="dg-edge" d="M295 250 L295 346"/>
-          <path class="dg-edge" d="M467 250 L467 346"/>
-          <path class="dg-edge" d="M639 250 L639 346"/>
+          <path class="dg-edge" d="M106 250 L106 346"/>
+          <path class="dg-edge" d="M243.5 250 L243.5 346"/>
+          <path class="dg-edge" d="M381 250 L381 346"/>
+          <path class="dg-edge" d="M518.5 250 L518.5 346"/>
+          <path class="dg-edge" d="M656 250 L656 346"/>
           <!-- platform -> external systems -->
           <path class="dg-edge" d="M718 223 L768 178"/>
           <path class="dg-edge" d="M718 293 L768 232"/>
@@ -643,6 +651,16 @@
           <text class="dg-t-label" x="668" y="33" text-anchor="middle" font-size="11">Partners &amp; resellers</text>
           <text class="dg-t-role dg-role-co" x="668" y="48" text-anchor="middle" font-size="8">COMPANY</text>
 
+          <!-- AUDIENCES (actor pills, who uses each surface) -->
+          <rect class="dg-you" x="68" y="-56" width="150" height="34" rx="17"/>
+          <text class="dg-t-label" x="143" y="-35" text-anchor="middle" font-size="12">Passengers</text>
+          <rect class="dg-crew" x="368" y="-56" width="150" height="34" rx="17"/>
+          <text class="dg-t-label" x="443" y="-35" text-anchor="middle" font-size="12">Operators</text>
+          <rect class="dg-co" x="602" y="-56" width="132" height="34" rx="17"/>
+          <text class="dg-t-label" x="668" y="-35" text-anchor="middle" font-size="12">Partners</text>
+          <rect class="dg-co" x="783" y="-56" width="150" height="34" rx="17"/>
+          <text class="dg-t-label" x="858" y="-35" text-anchor="middle" font-size="12">Corporate</text>
+
           <!-- PLATFORM BOUNDARY -->
           <rect class="dg-bound" x="28" y="96" width="720" height="304" rx="16"/>
           <rect class="dg-tag" x="40" y="86" width="262" height="20"/>
@@ -660,32 +678,43 @@
           <!-- Domain services -->
           <text class="dg-t-cap" x="44" y="190" font-size="9.5">The domain services — each owns its own data; none reaches into another's store</text>
           <!-- row 1 -->
-          <rect class="dg-svc" x="44" y="196" width="158" height="54" rx="9"/>
-          <text class="dg-t-svc" x="123" y="217" text-anchor="middle" font-size="12">Booking, inventory</text>
-          <text class="dg-t-svc" x="123" y="231" text-anchor="middle" font-size="12">&amp; pricing</text>
-          <text class="dg-t-sub" x="123" y="244" text-anchor="middle" font-size="9">live availability &amp; fares</text>
-          <rect class="dg-svc-hi" x="216" y="196" width="158" height="54" rx="9"/>
-          <text class="dg-t-svc" x="295" y="220" text-anchor="middle" font-size="12.5">Ticketing</text>
-          <text class="dg-t-sub" x="295" y="236" text-anchor="middle" font-size="9">kept exactly consistent</text>
-          <rect class="dg-svc" x="388" y="196" width="158" height="54" rx="9"/>
-          <text class="dg-t-svc" x="467" y="220" text-anchor="middle" font-size="12.5">Paths &amp; slots</text>
-          <text class="dg-t-sub" x="467" y="236" text-anchor="middle" font-size="9">the right to run</text>
-          <rect class="dg-svc-hi" x="560" y="196" width="158" height="54" rx="9"/>
-          <text class="dg-t-svc" x="639" y="220" text-anchor="middle" font-size="12.5">Payments</text>
-          <text class="dg-t-sub" x="639" y="236" text-anchor="middle" font-size="9">kept exactly consistent</text>
+          <rect class="dg-svc" x="44" y="196" width="124" height="54" rx="9"/>
+          <text class="dg-t-svc" x="106" y="214" text-anchor="middle" font-size="11.5">Booking &amp;</text>
+          <text class="dg-t-svc" x="106" y="228" text-anchor="middle" font-size="11.5">inventory</text>
+          <text class="dg-t-sub" x="106" y="242" text-anchor="middle" font-size="8.5">live availability</text>
+          <rect class="dg-svc" x="181.5" y="196" width="124" height="54" rx="9"/>
+          <text class="dg-t-svc" x="243.5" y="214" text-anchor="middle" font-size="11.5">Demand</text>
+          <text class="dg-t-svc" x="243.5" y="228" text-anchor="middle" font-size="11.5">forecasting</text>
+          <text class="dg-t-sub" x="243.5" y="242" text-anchor="middle" font-size="8.5">predicts what sells</text>
+          <rect class="dg-svc" x="319" y="196" width="124" height="54" rx="9"/>
+          <text class="dg-t-svc" x="381" y="214" text-anchor="middle" font-size="11.5">Dynamic</text>
+          <text class="dg-t-svc" x="381" y="228" text-anchor="middle" font-size="11.5">pricing</text>
+          <text class="dg-t-sub" x="381" y="242" text-anchor="middle" font-size="8.5">network-aware fares</text>
+          <rect class="dg-svc-hi" x="456.5" y="196" width="124" height="54" rx="9"/>
+          <text class="dg-t-svc" x="518.5" y="220" text-anchor="middle" font-size="12.5">Ticketing</text>
+          <text class="dg-t-sub" x="518.5" y="236" text-anchor="middle" font-size="8.5">kept exactly consistent</text>
+          <rect class="dg-svc-hi" x="594" y="196" width="124" height="54" rx="9"/>
+          <text class="dg-t-svc" x="656" y="220" text-anchor="middle" font-size="12.5">Payments</text>
+          <text class="dg-t-sub" x="656" y="236" text-anchor="middle" font-size="8.5">kept exactly consistent</text>
           <!-- row 2 -->
-          <rect class="dg-svc" x="44" y="266" width="158" height="54" rx="9"/>
-          <text class="dg-t-svc" x="123" y="290" text-anchor="middle" font-size="12.5">Fleet &amp; maintenance</text>
-          <text class="dg-t-sub" x="123" y="306" text-anchor="middle" font-size="9">certified &amp; serviceable</text>
-          <rect class="dg-svc" x="216" y="266" width="158" height="54" rx="9"/>
-          <text class="dg-t-svc" x="295" y="290" text-anchor="middle" font-size="12.5">Hospitality &amp; meals</text>
-          <text class="dg-t-sub" x="295" y="306" text-anchor="middle" font-size="9">galley order queue</text>
-          <rect class="dg-svc" x="388" y="266" width="158" height="54" rx="9"/>
-          <text class="dg-t-svc" x="467" y="290" text-anchor="middle" font-size="12.5">Loyalty</text>
-          <text class="dg-t-sub" x="467" y="306" text-anchor="middle" font-size="9">points ledger</text>
-          <rect class="dg-svc" x="560" y="266" width="158" height="54" rx="9"/>
-          <text class="dg-t-svc" x="639" y="290" text-anchor="middle" font-size="12.5">Integration hub</text>
-          <text class="dg-t-sub" x="639" y="306" text-anchor="middle" font-size="9">to the rail networks</text>
+          <rect class="dg-svc" x="44" y="266" width="124" height="54" rx="9"/>
+          <text class="dg-t-svc" x="106" y="290" text-anchor="middle" font-size="11.5">Paths &amp; slots</text>
+          <text class="dg-t-sub" x="106" y="306" text-anchor="middle" font-size="8.5">the right to run</text>
+          <rect class="dg-svc" x="181.5" y="266" width="124" height="54" rx="9"/>
+          <text class="dg-t-svc" x="243.5" y="284" text-anchor="middle" font-size="11.5">Fleet &amp;</text>
+          <text class="dg-t-svc" x="243.5" y="298" text-anchor="middle" font-size="11.5">maintenance</text>
+          <text class="dg-t-sub" x="243.5" y="312" text-anchor="middle" font-size="8.5">certified &amp; serviceable</text>
+          <rect class="dg-svc" x="319" y="266" width="124" height="54" rx="9"/>
+          <text class="dg-t-svc" x="381" y="284" text-anchor="middle" font-size="11.5">Hospitality</text>
+          <text class="dg-t-svc" x="381" y="298" text-anchor="middle" font-size="11.5">&amp; meals</text>
+          <text class="dg-t-sub" x="381" y="312" text-anchor="middle" font-size="8.5">galley order queue</text>
+          <rect class="dg-svc" x="456.5" y="266" width="124" height="54" rx="9"/>
+          <text class="dg-t-svc" x="518.5" y="290" text-anchor="middle" font-size="11.5">Loyalty</text>
+          <text class="dg-t-sub" x="518.5" y="306" text-anchor="middle" font-size="8.5">points ledger</text>
+          <rect class="dg-svc" x="594" y="266" width="124" height="54" rx="9"/>
+          <text class="dg-t-svc" x="656" y="284" text-anchor="middle" font-size="11.5">Integration</text>
+          <text class="dg-t-svc" x="656" y="298" text-anchor="middle" font-size="11.5">hub</text>
+          <text class="dg-t-sub" x="656" y="312" text-anchor="middle" font-size="8.5">to the rail networks</text>
 
           <!-- Event bus -->
           <rect class="dg-bus" x="44" y="346" width="674" height="32" rx="11"/>
@@ -723,6 +752,165 @@
         </svg>
       </div>
       <p class="bpcap">The gold-edged services — <b>ticketing</b> and <b>payments</b> — are the two held to strict, no-double-booking consistency; everything else trades a little strictness for resilience and speed. The hub on the right reaches out to the rail networks and payment providers, and the train carries its own slice of the platform, which is why life on board survives a lost signal.</p>
+    </div>
+  </section>
+
+  <!-- SLIDE 11 — DE-RISKING THE WORK -->
+  <section class="slide" data-phase="day">
+    <div class="inner">
+      <div class="slabel"><span class="sn">10</span> De-risking the work <span class="where">· figuring out the hard things first</span></div>
+      <h2 class="stitle">De-risking the work</h2>
+      <p class="bpsub">We have years before a real train — so we don't wait for one. We practise the whole system on progressively more realistic stand-ins, and we attack the hardest unknowns up front, in software, where a wrong answer is cheap to change.</p>
+      <div class="diagram">
+        <svg viewBox="0 0 960 392" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A fidelity ladder of five ascending rungs: an in-memory simulator and a software twin, up through the physical model-train rig and cabin prototype, to the real train as a final check — every rung runs the same tests against the same contracts">
+          <!-- heading -->
+          <text class="dg-t-line" x="8" y="26" font-size="13">The fidelity ladder — every rung speaks the same contract and passes the same tests</text>
+
+          <!-- connecting lines (under boxes) -->
+          <path class="dg-edge" d="M184 317 L196 263"/>
+          <path class="dg-edge" d="M372 263 L384 209"/>
+          <path class="dg-edge" d="M560 209 L572 155"/>
+          <path class="dg-edge" d="M748 155 L760 101"/>
+
+          <!-- rung 1: in-memory simulator (software) -->
+          <rect class="dg-svc" x="8" y="286" width="176" height="62" rx="11"/>
+          <text class="dg-t-svc" x="96" y="312" text-anchor="middle" font-size="14.5">In-memory simulator</text>
+          <text class="dg-t-sub" x="96" y="330" text-anchor="middle" font-size="10">a full train in software · seconds</text>
+
+          <!-- rung 2: software twin (software) -->
+          <rect class="dg-svc" x="196" y="232" width="176" height="62" rx="11"/>
+          <text class="dg-t-svc" x="284" y="258" text-anchor="middle" font-size="14.5">Software twin</text>
+          <text class="dg-t-sub" x="284" y="276" text-anchor="middle" font-size="10">dropouts &amp; faults, injected</text>
+
+          <!-- rung 3: model-train rig (the Lab) -->
+          <rect class="dg-svc-hi" x="384" y="178" width="176" height="62" rx="11"/>
+          <text class="dg-t-svc" x="472" y="204" text-anchor="middle" font-size="14.5">Model-train rig</text>
+          <text class="dg-t-sub" x="472" y="222" text-anchor="middle" font-size="10">real movement · flaky wireless</text>
+
+          <!-- rung 4: cabin prototype (the Lab) -->
+          <rect class="dg-svc-hi" x="572" y="124" width="176" height="62" rx="11"/>
+          <text class="dg-t-svc" x="660" y="150" text-anchor="middle" font-size="14.5">Cabin prototype</text>
+          <text class="dg-t-sub" x="660" y="168" text-anchor="middle" font-size="10">a real berth · full on-board loop</text>
+
+          <!-- rung 5: real train (final) -->
+          <rect class="dg-co" x="760" y="70" width="176" height="62" rx="11"/>
+          <text class="dg-t-svc" x="848" y="96" text-anchor="middle" font-size="14.5">Real train</text>
+          <text class="dg-t-sub" x="848" y="114" text-anchor="middle" font-size="10">final check · pre-trip only</text>
+
+          <!-- sync-first annotation over the software rungs -->
+          <rect class="dg-pill" x="8" y="238" width="158" height="22" rx="11"/>
+          <text class="dg-t-off" x="87" y="253" text-anchor="middle" font-size="11">sync solved here, first</text>
+
+          <!-- category tags -->
+          <text class="dg-t-sub" x="8" y="372" font-size="10.5">software · cheap, instant, always-on</text>
+          <text class="dg-t-sub" x="384" y="372" font-size="10.5">the Lab · physical rigs (gold)</text>
+          <text class="dg-t-sub" x="760" y="372" font-size="10.5">real train · final validation</text>
+        </svg>
+      </div>
+      <div class="frow crew" style="margin-top:16px;"><span class="ftag">MVP — the hard things first</span><span class="step">Offline sync &amp; conflict resolution</span><span class="step">No double-book, no double-charge</span><span class="step">The whole ride, end to end in the Lab</span></div>
+      <p class="bpcap">The expensive, irreversible decisions get made only after the cheap, reversible ones have taught us the answer — so by the time a real carriage exists, the platform has already lived the journey thousands of times. The real train is the final check, not where we discover problems.</p>
+    </div>
+  </section>
+
+  <!-- SLIDE 12 — PROVING THE ECONOMICS -->
+  <section class="slide" data-phase="day">
+    <div class="inner">
+      <div class="slabel"><span class="sn">11</span> Proving the economics <span class="where">· a market simulator for revenue management</span></div>
+      <h2 class="stitle">Proving the economics</h2>
+      <p class="bpsub">The same simulators that de-risk the engineering do a second job: we point them at the business. Thousands of synthetic travellers book through the <b>real</b> pricing and inventory path — across seasons, day and night, and every leg of the route — so we test and tune revenue management long before a single ticket is sold, and prove each train pays for itself from day one.</p>
+      <div class="diagram">
+        <svg viewBox="0 0 960 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A loop: simulated demand feeds the real revenue-management engine (forecasting, dynamic pricing, inventory), which produces unit economics (revenue per departure versus cost to run); a feedback arrow tunes the pricing and repeats">
+          <text class="dg-t-line" x="20" y="26" font-size="13">The same simulators, pointed at the business — what works in simulation is what ships</text>
+
+          <!-- forward connectors -->
+          <path class="dg-edge" d="M260 118 L354 118"/>
+          <path d="M354 113 L354 123 L360 118 Z" fill="var(--line2)"/>
+          <path class="dg-edge" d="M600 118 L694 118"/>
+          <path d="M694 113 L694 123 L700 118 Z" fill="var(--line2)"/>
+
+          <!-- feedback loop -->
+          <path class="dg-off" d="M820 164 C820 230 480 230 480 166"/>
+          <path d="M475 172 L485 172 L480 162 Z" fill="var(--gold)"/>
+          <text class="dg-t-off" x="650" y="212" text-anchor="middle" font-size="11.5">tune pricing &amp; repeat</text>
+
+          <!-- box 1: simulated demand -->
+          <rect class="dg-svc" x="20" y="72" width="240" height="92" rx="12"/>
+          <text class="dg-t-svc" x="140" y="108" text-anchor="middle" font-size="16">Simulated demand</text>
+          <text class="dg-t-sub" x="140" y="130" text-anchor="middle" font-size="10.5">thousands of synthetic travellers</text>
+          <text class="dg-t-sub" x="140" y="147" text-anchor="middle" font-size="10.5">seasons · day &amp; night · every leg</text>
+
+          <!-- box 2: revenue management (under test) -->
+          <rect class="dg-svc-hi" x="360" y="72" width="240" height="92" rx="12"/>
+          <text class="dg-t-svc" x="480" y="108" text-anchor="middle" font-size="16">Revenue management</text>
+          <text class="dg-t-sub" x="480" y="130" text-anchor="middle" font-size="10.5">demand forecasting · dynamic pricing</text>
+          <text class="dg-t-sub" x="480" y="147" text-anchor="middle" font-size="10.5">· inventory &amp; capacity ·</text>
+
+          <!-- box 3: unit economics -->
+          <rect class="dg-svc" x="700" y="72" width="240" height="92" rx="12"/>
+          <text class="dg-t-svc" x="820" y="108" text-anchor="middle" font-size="16">Unit economics</text>
+          <text class="dg-t-sub" x="820" y="130" text-anchor="middle" font-size="10.5">revenue per departure vs cost to run</text>
+          <text class="dg-t-sub" x="820" y="147" text-anchor="middle" font-size="10.5">load factor · margin</text>
+        </svg>
+      </div>
+      <div class="frow co" style="margin-top:16px;"><span class="ftag">Validated in simulation</span><span class="step">Forecast accuracy</span><span class="step">Pricing strategy, A/B-tested</span><span class="step">Day vs night capacity</span><span class="step">Margin per departure</span></div>
+      <p class="bpcap">Because the booking, pricing and inventory under test are the real ones — not a spreadsheet model — what works in simulation is what ships. We reach launch with pricing already tuned and the unit economics already proven, rather than discovering them on real passengers.</p>
+    </div>
+  </section>
+
+  <!-- SLIDE 13 — DISCUSSION -->
+  <section class="slide" data-phase="day">
+    <div class="inner">
+      <div class="slabel"><span class="sn">12</span> Let's discuss <span class="where">· open questions &amp; where we go deeper</span></div>
+      <h2 class="stitle">Let's discuss</h2>
+      <p class="bpsub">Where we'd most value your push-back — starting with anything from the walkthrough so far.</p>
+
+      <div style="display:flex;flex-direction:column;gap:11px;max-width:880px;">
+
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <span style="flex:0 0 auto;width:27px;height:27px;border-radius:50%;border:1.5px solid var(--gold);color:var(--gold);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">1</span>
+          <div style="padding-top:3px;"><span style="color:var(--cream);font-weight:600;font-size:15.5px;">Questions so far</span> <span style="color:var(--muted);font-size:14px;">— anything from the journey, the architecture, the de-risking, or the economics?</span></div>
+        </div>
+
+        <div style="color:var(--gold);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;margin:8px 0 1px;">Material gaps to close</div>
+
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <span style="flex:0 0 auto;width:27px;height:27px;border-radius:50%;border:1.5px solid var(--gold);color:var(--gold);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">2</span>
+          <div style="padding-top:3px;"><span style="color:var(--cream);font-weight:600;font-size:15.5px;">The lean company &amp; "Company OS"</span> <span style="color:var(--muted);font-size:14px;">— automating coordination end to end; HQ headcount as an architectural invariant, not a target.</span></div>
+        </div>
+
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <span style="flex:0 0 auto;width:27px;height:27px;border-radius:50%;border:1.5px solid var(--gold);color:var(--gold);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">3</span>
+          <div style="padding-top:3px;"><span style="color:var(--cream);font-weight:600;font-size:15.5px;">The cost side of the model</span> <span style="color:var(--muted);font-size:14px;">— self-monitoring stock, predictive maintenance, smart energy → opex below the norm.</span></div>
+        </div>
+
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <span style="flex:0 0 auto;width:27px;height:27px;border-radius:50%;border:1.5px solid var(--gold);color:var(--gold);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">4</span>
+          <div style="padding-top:3px;"><span style="color:var(--cream);font-weight:600;font-size:15.5px;">AI-native operations</span> <span style="color:var(--muted);font-size:14px;">— "a system that thinks" beyond pricing, collapsing the back office.</span></div>
+        </div>
+
+        <div style="color:var(--teal);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;margin:8px 0 1px;">Where you asked us to go deeper</div>
+
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <span style="flex:0 0 auto;width:27px;height:27px;border-radius:50%;border:1.5px solid var(--teal);color:var(--teal);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">5</span>
+          <div style="padding-top:3px;"><span style="color:var(--cream);font-weight:600;font-size:15.5px;">Build vs buy &amp; ownership</span> <span style="color:var(--muted);font-size:14px;">— what we own (the edge, the experience, the conformance ladder) vs integrate (identity, payments, the reservation core).</span></div>
+        </div>
+
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <span style="flex:0 0 auto;width:27px;height:27px;border-radius:50%;border:1.5px solid var(--teal);color:var(--teal);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">6</span>
+          <div style="padding-top:3px;"><span style="color:var(--cream);font-weight:600;font-size:15.5px;">The road to December 2029</span> <span style="color:var(--muted);font-size:14px;">— what we start now, and how we harden before the first paying guest.</span></div>
+        </div>
+
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <span style="flex:0 0 auto;width:27px;height:27px;border-radius:50%;border:1.5px solid var(--teal);color:var(--teal);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">7</span>
+          <div style="padding-top:3px;"><span style="color:var(--cream);font-weight:600;font-size:15.5px;">Topic 1 — the digitally-born train</span> <span style="color:var(--muted);font-size:14px;">— the OEM interface, what to provision in the steel now, the safety-domain boundary.</span></div>
+        </div>
+
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <span style="flex:0 0 auto;width:27px;height:27px;border-radius:50%;border:1.5px solid var(--teal);color:var(--teal);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">8</span>
+          <div style="padding-top:3px;"><span style="color:var(--cream);font-weight:600;font-size:15.5px;">Topic 2 — revenue management</span> <span style="color:var(--muted);font-size:14px;">— the day + night dual product, subsystem design, AI, and where the build/buy line sits.</span></div>
+        </div>
+
+      </div>
     </div>
   </section>
 
